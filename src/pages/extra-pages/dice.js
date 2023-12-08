@@ -69,7 +69,7 @@ const Dice = () => {
         websocket.close();
       }
     };
-  }, []);
+  });
 
   return (
     <div className="w-screen">
