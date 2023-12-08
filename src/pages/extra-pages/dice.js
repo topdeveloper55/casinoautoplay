@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 // ==============================|| WalletList PAGE ||============================== //
-import useWebSocket from 'react-use-websocket';
+import useWebSocket, { ReadyState } from 'react-use-websocket';
 const Dice = () => {
   const [userId, setUserID] = useState('');
   const [amount, setAmount] = useState(0);
@@ -9,8 +9,17 @@ const Dice = () => {
   const [buttonColor2, setButtonColor2] = useState('bg-gray-300');
   const [dividing, setDividingPoint] = useState(0);
   const [playNumber, setPlayNumber] = useState(1);
-  const { sendJsonMessage, lastMessage } = useWebSocket(WS_URL);
-  const WS_URL = 'wss://bch.games/api/graphql';
+  const socketUrl = 'wss://bch.games/api/graphql';
+  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
+
+  const [messageHistory, setMessageHistory] = useState([]);
+  useEffect(() => {
+    if (lastMessage !== null) {
+      setMessageHistory((prev) => prev.concat(lastMessage));
+    }
+  }, [lastMessage, setMessageHistory]);
+
+  const handleClickSendMessage = useCallback(() => sendMessage('Hello'), []);
   // const [websocket, setWebsocket] = useState(null);
   function handleChangeUserId(event) {
     setUserID(event.target.value);
@@ -36,21 +45,24 @@ const Dice = () => {
     }
   }
   console.log(userId, amount, upDown, dividing, playNumber);
-  useWebSocket(WS_URL, {
-    onOpen: () => {
-      console.log('WebSocket connection established.');
-    }
-  });
+  const connectionStatus = {
+    [ReadyState.CONNECTING]: 'Connecting',
+    [ReadyState.OPEN]: 'Open',
+    [ReadyState.CLOSING]: 'Closing',
+    [ReadyState.CLOSED]: 'Closed',
+    [ReadyState.UNINSTANTIATED]: 'Uninstantiated'
+  }[readyState];
+  console.log('connectionStatus---->', connectionStatus);
+  // useWebSocket(WS_URL, {
+  //   onOpen: () => {
+  //     console.log('WebSocket connection established.');
+  //   }
+  // });
 
   function handlePlay() {
     console.log(userId, amount, upDown, dividing, playNumber);
-    sendJsonMessage({
-      clientSeed: userId,
-      amount: amount,
-      mode: upDown,
-      dividingPoint: dividing
-    });
-    console.log('Last message received:', lastMessage);
+    handleClickSendMessage();
+    console.log(messageHistory);
   }
 
   return (
