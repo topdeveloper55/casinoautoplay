@@ -64,12 +64,12 @@ const Dice = () => {
       console.log('Received data:', data);
     };
 
-    return () => {
-      if (websocket) {
-        websocket.close();
-      }
-    };
-  }, [websocket]);
+    // return () => {
+    //   if (websocket) {
+    //     websocket.close();
+    //   }
+    // };
+  }, []);
 
   return (
     <div className="w-screen">
