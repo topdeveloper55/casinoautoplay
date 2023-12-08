@@ -9,7 +9,7 @@ const Dice = () => {
   const [buttonColor2, setButtonColor2] = useState('bg-gray-300');
   const [dividing, setDividingPoint] = useState(0);
   const [playNumber, setPlayNumber] = useState(1);
-  const { sendJsonMessage } = useWebSocket(WS_URL);
+  const { sendJsonMessage, lastMessage } = useWebSocket(WS_URL);
   const WS_URL = 'wss://bch.games/api/graphql';
   // const [websocket, setWebsocket] = useState(null);
   function handleChangeUserId(event) {
@@ -50,6 +50,7 @@ const Dice = () => {
       mode: upDown,
       dividingPoint: dividing
     });
+    console.log('Last message received:', lastMessage);
   }
 
   return (
