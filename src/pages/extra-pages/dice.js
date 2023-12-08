@@ -44,6 +44,8 @@ const Dice = () => {
     sendMessage(message);
   }
   const sendMessage = (message) => {
+    console.log(websocket);
+    console.log(websocket.readyState);
     if (websocket && websocket.readyState === WebSocket.OPEN) {
       websocket.send(JSON.stringify(message));
     } else {
