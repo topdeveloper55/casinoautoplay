@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 // ==============================|| WalletList PAGE ||============================== //
 
-const ws = new WebSocket('wss://bch.games/api/graphql');
+let ws = new WebSocket('wss://bch.games/api/graphql');
 
 const Dice = () => {
   const [userId, setUserID] = useState('');
@@ -59,11 +59,14 @@ const Dice = () => {
   useEffect(() => {
     ws.onopen = () => {
       console.log('connected');
-      setWebsocket(ws); // Store the websocket in the state
+      // setWebsocket(ws); // Store the websocket in the state
     };
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       console.log('Received data:', data);
+    };
+    ws.onclose = () => {
+      console.log('closed --->');
     };
 
     // return () => {
