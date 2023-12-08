@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 // ==============================|| WalletList PAGE ||============================== //
-
-let ws = new WebSocket('wss://bch.games/api/graphql');
-
+import useWebSocket from 'react-use-websocket';
 const Dice = () => {
   const [userId, setUserID] = useState('');
   const [amount, setAmount] = useState(0);
@@ -11,6 +9,8 @@ const Dice = () => {
   const [buttonColor2, setButtonColor2] = useState('bg-gray-300');
   const [dividing, setDividingPoint] = useState(0);
   const [playNumber, setPlayNumber] = useState(1);
+  const { sendJsonMessage } = useWebSocket(WS_URL);
+  const WS_URL = 'wss://bch.games/api/graphql';
   // const [websocket, setWebsocket] = useState(null);
   function handleChangeUserId(event) {
     setUserID(event.target.value);
@@ -35,46 +35,22 @@ const Dice = () => {
       setButtonColor2('bg-sky-600');
     }
   }
+  console.log(userId, amount, upDown, dividing, playNumber);
+  useWebSocket(WS_URL, {
+    onOpen: () => {
+      console.log('WebSocket connection established.');
+    }
+  });
 
   function handlePlay() {
     console.log(userId, amount, upDown, dividing, playNumber);
-    const message = {
+    sendJsonMessage({
       clientSeed: userId,
       amount: amount,
       mode: upDown,
       dividingPoint: dividing
-    };
-    sendMessage(message);
+    });
   }
-  const sendMessage = (message) => {
-    console.log(ws);
-    console.log(ws.readyState);
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(message));
-    } else {
-      console.error('WebSocket is not open or initialized');
-    }
-  };
-
-  useEffect(() => {
-    ws.onopen = () => {
-      console.log('connected');
-      // setWebsocket(ws); // Store the websocket in the state
-    };
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      console.log('Received data:', data);
-    };
-    ws.onclose = () => {
-      console.log('closed --->');
-    };
-
-    // return () => {
-    //   if (websocket) {
-    //     websocket.close();
-    //   }
-    // };
-  }, []);
 
   return (
     <div className="w-screen">
