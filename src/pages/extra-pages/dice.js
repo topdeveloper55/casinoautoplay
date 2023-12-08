@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 // ==============================|| WalletList PAGE ||============================== //
+
+const ws = new WebSocket('wss://bch.games/api/graphql');
+
 const Dice = () => {
   const [userId, setUserID] = useState('');
   const [amount, setAmount] = useState(0);
@@ -8,7 +11,7 @@ const Dice = () => {
   const [buttonColor2, setButtonColor2] = useState('bg-gray-300');
   const [dividing, setDividingPoint] = useState(0);
   const [playNumber, setPlayNumber] = useState(1);
-  const [websocket, setWebsocket] = useState(null);
+  // const [websocket, setWebsocket] = useState(null);
   function handleChangeUserId(event) {
     setUserID(event.target.value);
   }
@@ -44,23 +47,20 @@ const Dice = () => {
     sendMessage(message);
   }
   const sendMessage = (message) => {
-    console.log(websocket);
-    console.log(websocket.readyState);
-    if (websocket && websocket.readyState === WebSocket.OPEN) {
-      websocket.send(JSON.stringify(message));
+    console.log(ws);
+    console.log(ws.readyState);
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(message));
     } else {
       console.error('WebSocket is not open or initialized');
     }
   };
 
   useEffect(() => {
-    const ws = new WebSocket('wss://bch.games/api/graphql');
-
     ws.onopen = () => {
       console.log('connected');
       setWebsocket(ws); // Store the websocket in the state
     };
-
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       console.log('Received data:', data);
