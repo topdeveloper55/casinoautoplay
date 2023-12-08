@@ -1,0 +1,215 @@
+import React, { useEffect, useState } from 'react';
+import axios from 'utils/axios';
+import { toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+// ==============================|| WalletList PAGE ||============================== //
+const WalletListPage = () => {
+  const [data, setData] = useState([]);
+  const [filtered, setFilteredData] = useState([]);
+  const [winners, setWinners] = useState([]);
+  const [filterWinners, setFilterWinners] = useState([]);
+  const [push, setPush] = useState(0);
+  const [allUsers, setAllUsers] = useState(0);
+  const [dailyUsers, setDailyUsers] = useState(0);
+
+  function handleChangeKeyword(event) {
+    const keyword = event.target.value.toLowerCase();
+    let temp = [];
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].walletAddress !== undefined) {
+        temp.push(data[i]);
+      }
+    }
+    const filtered = temp.filter((item) => item.walletAddress.toLowerCase().includes(keyword));
+    setFilteredData(filtered);
+  }
+  const filterWin = (winStatus) => {
+    const filtered = data.filter((item) => item.winStatus === winStatus);
+    setFilteredData(filtered);
+  };
+  const handleFilterByDate = async (event) => {
+    const dateValue = event;
+    const utcDate = dateValue.toLocaleDateString('en-CA');
+    const filtered = data.filter((item) => item.date === utcDate);
+    setFilteredData(filtered);
+  };
+  const handleDeleteSpot = async (id) => {
+    const response = await axios.post('https://mariusjourney-server.onrender.com/api/spots/deleteById', {
+      id: id
+    });
+    toast(response.data.message, { hideProgressBar: false, autoClose: 2000, type: 'success' });
+    setPush(push + 1);
+  };
+
+  const handleWinnersFilterByDate = async (event) => {
+    const dateValue = event;
+    const utcDate = dateValue.toLocaleDateString('en-CA');
+    const filtered = winners.filter((item) => item.date === utcDate);
+    setFilterWinners(filtered);
+  };
+
+  useEffect(() => {
+    axios
+      .get('https://mariusjourney-server.onrender.com/api/spots/all')
+      .then((response) => {
+        setData(response.data);
+        setFilteredData(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [push]);
+
+  useEffect(() => {
+    axios
+      .get('https://mariusjourney-server.onrender.com/api/spots/winners')
+      .then((response) => {
+        setWinners(response.data);
+        setFilterWinners(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [push]);
+  useEffect(() => {
+    axios
+      .post('https://mariusjourney-server.onrender.com/api/spots/playersNumber')
+      .then((response) => {
+        setAllUsers(response.data.allUsers);
+        setDailyUsers(response.data.dailyUsers);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [push]);
+
+  return (
+    <div className="w-full overflow-hidden">
+      <div className="inline-flex">
+        <div className="text-[22px] mr-3 font-bold">AllUsers</div>
+        <div className="text-[20px] mr-5">{allUsers}</div>
+        <div className="text-[22px] mr-3 font-bold">DailyUsers</div>
+        <div className="text-[20px]">{dailyUsers}</div>
+      </div>
+      <div className="text-[25px] mb-[20px]">Winners List</div>
+      <div className="mb-[12px]">
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <DatePicker format="dd/MM/yyyy" onChange={(newValue) => handleWinnersFilterByDate(newValue)} />
+        </LocalizationProvider>
+      </div>
+      <div className="table w-full text-[15px] mb-[25px]">
+        {filterWinners.length != 0 && (
+          <div className="table-header-group">
+            <div className="table-row">
+              <div className="table-cell text-center">No</div>
+              <div className="table-cell text-center">Address</div>
+              <div className="table-cell text-center">Date</div>
+              <div className="table-cell text-center">Nickname</div>
+              <div className="table-cell text-center">Delete</div>
+            </div>
+          </div>
+        )}
+
+        <div className="table-row-group">
+          {filterWinners.map((item, index) => (
+            <div className="table-row" key={index}>
+              <div className="table-cell text-center">{index + 1}</div>
+              <div className="table-cell text-center">{item.walletAddress}</div>
+              <div className="table-cell text-center">{item.createdAt}</div>
+              <div className="table-cell text-center">{item.nickName}</div>
+              <div className="table-cell text-center p-2 mb-1">
+                <button
+                  className="rounded-lg bg-gray-500 p-1"
+                  onClick={() => {
+                    handleDeleteSpot(item.id);
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="text-[25px] mb-[25px]">Spots List</div>
+      <div className="inline-flex mb-5">
+        <div className="flex w-[205px] items-center justify-center">
+          <div className="text-[20px]">Wallet Address</div>
+        </div>
+        <input
+          className="items-center text-sm leading-6 text-slate-400 rounded-md ring-1 shadow-sm py-1.5 pl-2 pr-3 hover:ring-white bg-gray-300 dark:highlight-white/5 dark:hover:bg-gray-100"
+          onChange={handleChangeKeyword}
+        ></input>
+        <button
+          className="rounded-full bg-gray-300 hover:bg-gray-500 ml-3"
+          onClick={() => {
+            filterWin(1);
+          }}
+        >
+          <div className="mx-[20px]">Win</div>
+        </button>
+        <button
+          className="rounded-full bg-gray-300 hover:bg-gray-500 ml-3"
+          onClick={() => {
+            filterWin(2);
+          }}
+        >
+          <div className="mx-[20px]">Almost</div>
+        </button>
+        <button
+          className="rounded-full bg-gray-300 hover:bg-gray-500 ml-3 mr-3"
+          onClick={() => {
+            filterWin(3);
+          }}
+        >
+          <div className="mx-[20px]">Loose</div>
+        </button>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <DatePicker format="dd/MM/yyyy" onChange={(newValue) => handleFilterByDate(newValue)} />
+        </LocalizationProvider>
+      </div>
+      <div className="table w-full text-[15px]">
+        {filtered.length != 0 && (
+          <div className="table-header-group">
+            <div className="table-row">
+              <div className="table-cell text-center">No</div>
+              <div className="table-cell text-center">Address</div>
+              <div className="table-cell text-center">WinStatus</div>
+              <div className="table-cell text-center">Date</div>
+              <div className="table-cell text-center">Nickname</div>
+              <div className="table-cell text-center">Delete</div>
+            </div>
+          </div>
+        )}
+
+        <div className="table-row-group">
+          {filtered.map((item, index) => (
+            <div className="table-row" key={index}>
+              <div className="table-cell text-center">{index + 1}</div>
+              <div className="table-cell text-center">{item.walletAddress}</div>
+              <div className="table-cell text-center">{item.winStatus}</div>
+              <div className="table-cell text-center">{item.createdAt}</div>
+              <div className="table-cell text-center">{item.nickName}</div>
+              <div className="table-cell text-center p-2 mb-1">
+                <button
+                  className="rounded-lg bg-gray-500 p-1"
+                  onClick={() => {
+                    handleDeleteSpot(item.id);
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <ToastContainer />
+    </div>
+  );
+};
+
+export default WalletListPage;
