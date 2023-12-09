@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { WebSocketLink } from '@apollo/client/link/ws';
+import { SubscriptionClient } from 'subscriptions-transport-ws';
 // ==============================|| WalletList PAGE ||============================== //
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 const Dice = () => {
@@ -9,18 +11,7 @@ const Dice = () => {
   const [buttonColor2, setButtonColor2] = useState('bg-gray-300');
   const [dividing, setDividingPoint] = useState(0);
   const [playNumber, setPlayNumber] = useState(1);
-  const socketUrl = 'wss://bch.games/api/graphql';
-  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
 
-  const [messageHistory, setMessageHistory] = useState([]);
-  useEffect(() => {
-    if (lastMessage !== null) {
-      setMessageHistory((prev) => prev.concat(lastMessage));
-    }
-  }, [lastMessage, setMessageHistory]);
-
-  const handleClickSendMessage = useCallback(() => sendMessage('Hello'), []);
-  // const [websocket, setWebsocket] = useState(null);
   function handleChangeUserId(event) {
     setUserID(event.target.value);
   }
@@ -44,26 +35,30 @@ const Dice = () => {
       setButtonColor2('bg-sky-600');
     }
   }
-  console.log(userId, amount, upDown, dividing, playNumber);
-  const connectionStatus = {
-    [ReadyState.CONNECTING]: 'Connecting',
-    [ReadyState.OPEN]: 'Open',
-    [ReadyState.CLOSING]: 'Closing',
-    [ReadyState.CLOSED]: 'Closed',
-    [ReadyState.UNINSTANTIATED]: 'Uninstantiated'
-  }[readyState];
-  console.log('connectionStatus---->', connectionStatus);
-  // useWebSocket(WS_URL, {
-  //   onOpen: () => {
-  //     console.log('WebSocket connection established.');
-  //   }
-  // });
-
   function handlePlay() {
     console.log(userId, amount, upDown, dividing, playNumber);
     handleClickSendMessage();
     console.log(messageHistory);
   }
+
+
+
+
+
+
+
+
+
+  const link = new WebSocketLink(
+    new SubscriptionClient('wss://bch.games/api/graphql', {
+      reconnect: true
+    })
+  );
+
+
+
+
+
 
   return (
     <div className="w-screen">
