@@ -34,7 +34,6 @@ const MainLayout = () => {
     if (!miniDrawer) {
       dispatch(openDrawer(!matchDownXL));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchDownXL]);
 
   return (

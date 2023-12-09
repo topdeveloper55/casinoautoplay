@@ -169,7 +169,6 @@ const NavCollapse = ({ menu, level, parentId, setSelectedItems, selectedItems, s
       });
     }
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, menu.children]);
 
   useEffect(() => {

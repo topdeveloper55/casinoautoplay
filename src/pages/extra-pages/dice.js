@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 // ==============================|| WalletList PAGE ||============================== //
-// import useWebSocket, { ReadyState } from 'react-use-websocket';
+import useWebSocket, { ReadyState } from 'react-use-websocket';
 const Dice = () => {
   const [userId, setUserID] = useState('');
   const [amount, setAmount] = useState(0);
@@ -10,32 +10,16 @@ const Dice = () => {
   const [dividing, setDividingPoint] = useState(0);
   const [playNumber, setPlayNumber] = useState(1);
   const socketUrl = 'wss://bch.games/api/graphql';
-  // const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
+  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
 
-  // const [messageHistory, setMessageHistory] = useState([]);
-  // useEffect(() => {
-  //   if (lastMessage !== null) {
-  //     setMessageHistory((prev) => prev.concat(lastMessage));
-  //   }
-  // }, [lastMessage, setMessageHistory]);
-
+  const [messageHistory, setMessageHistory] = useState([]);
   useEffect(() => {
-    const ws = new WebSocket(socketUrl);
+    if (lastMessage !== null) {
+      setMessageHistory((prev) => prev.concat(lastMessage));
+    }
+  }, [lastMessage, setMessageHistory]);
 
-    ws.onopen = function () {
-      console.log('Connection opened');
-    };
-
-    ws.onmessage = function (message) {
-      console.log('Received message: ' + message);
-    };
-
-    ws.onclose = function () {
-      console.log('Connection closed');
-    };
-  }, []);
-
-  // const handleClickSendMessage = useCallback(() => sendMessage('Hello'), [sendMessage]);
+  const handleClickSendMessage = useCallback(() => sendMessage('Hello'), []);
   // const [websocket, setWebsocket] = useState(null);
   function handleChangeUserId(event) {
     setUserID(event.target.value);
@@ -61,14 +45,14 @@ const Dice = () => {
     }
   }
   console.log(userId, amount, upDown, dividing, playNumber);
-  // const connectionStatus = {
-  //   [ReadyState.CONNECTING]: 'Connecting',
-  //   [ReadyState.OPEN]: 'Open',
-  //   [ReadyState.CLOSING]: 'Closing',
-  //   [ReadyState.CLOSED]: 'Closed',
-  //   [ReadyState.UNINSTANTIATED]: 'Uninstantiated'
-  // }[readyState];
-  // console.log('connectionStatus---->', connectionStatus);
+  const connectionStatus = {
+    [ReadyState.CONNECTING]: 'Connecting',
+    [ReadyState.OPEN]: 'Open',
+    [ReadyState.CLOSING]: 'Closing',
+    [ReadyState.CLOSED]: 'Closed',
+    [ReadyState.UNINSTANTIATED]: 'Uninstantiated'
+  }[readyState];
+  console.log('connectionStatus---->', connectionStatus);
   // useWebSocket(WS_URL, {
   //   onOpen: () => {
   //     console.log('WebSocket connection established.');
