@@ -121,8 +121,8 @@ const Mines = () => {
   };
   useEffect(() => console.log('useToken ->', userToken), [userToken]);
   const miniPlay = () => {
-    console.log('----------> useeffect', userToken);
-    console.log('--------->playnumber', playNumber);
+    console.log('----------> useeffect', userTokenRef.current);
+    console.log('--------->playnumber', playNumberRef.current);
     if (counter <= playNumberRef.current) {
       console.log('userId---->', userId);
       miningCounter = 0;
