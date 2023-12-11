@@ -152,13 +152,19 @@ const Mines = () => {
       }, 100);
     }
   };
-
-  socketRef.current = new WebSocket('wss://bch.games/api/graphql', 'graphql-transport-ws');
-
-  socketRef.current.onopen = () => {
-    // Once the WebSocket connection is open, you can send your GraphQL request
-    socketRef.current.send(JSON.stringify({ type: 'connection_init' }));
-  };
+  useEffect(() => {
+    socketRef.current = new WebSocket('wss://bch.games/api/graphql', 'graphql-transport-ws');
+    socketRef.current.onopen = () => {
+      // Once the WebSocket connection is open, you can send your GraphQL request
+      socketRef.current.send(JSON.stringify({ type: 'connection_init' }));
+    };
+    return () => {
+      // Clean up the WebSocket connection when the component is unmounted
+      if (socketRef.current) {
+        socketRef.current.close();
+      }
+    };
+  }, []);
 
   socketRef.current.onmessage = (event) => {
     // Handle incoming messages from the WebSocket server
