@@ -5,38 +5,27 @@ import 'react-toastify/dist/ReactToastify.css';
 const Hilo = () => {
   const [userId, setUserID] = useState('');
   const [amount, setAmount] = useState(0);
-  const [upDown, setUpDown] = useState('RollUnder');
   const [buttonColor1, setButtonColor1] = useState('bg-sky-600');
   const [buttonColor2, setButtonColor2] = useState('bg-gray-300');
-  const [dividing, setDividingPoint] = useState(0);
   const [playNumber, setPlayNumber] = useState(1);
   const [userToken, setUserToken] = useState('');
   const socketRef = useRef(null);
   const [playData, setPlayData] = useState([]);
   let username = '';
+  let playId = '';
   let selectArray = ['HigherOrSame', 'LowerOrSame'];
+  const playNumberRef = useRef(1);
+  const userIdRef = useRef('');
+  const amountRef = useRef(0);
+
   function handleChangeUserId(event) {
     setUserID(event.target.value);
   }
   function handleChangeAmount(event) {
     setAmount(event.target.value);
   }
-  function handleChangeDividingPoint(event) {
-    setDividingPoint(event.target.value);
-  }
   function handleChangePlayNumber(event) {
     setPlayNumber(parseInt(event.target.value));
-  }
-  function handleChangeUpdown(status) {
-    if (status === 'up') {
-      setUpDown('RollUnder');
-      setButtonColor1('bg-sky-600');
-      setButtonColor2('bg-gray-300');
-    } else if (status === 'down') {
-      setUpDown('RollOver');
-      setButtonColor1('bg-gray-300');
-      setButtonColor2('bg-sky-600');
-    }
   }
   const handlePlay = async () => {
     if (userId === '') {
@@ -85,7 +74,7 @@ const Hilo = () => {
     setUserToken(event.target.value);
   }
   const autoPlay = (data) => {
-    console.log("data---->", data._id)
+    console.log('data---->', data._id);
     socketRef.current.send(
       JSON.stringify({
         id: '9dafaba2-98c7-11ee-b9d1-0242ac120002',
@@ -97,6 +86,27 @@ const Hilo = () => {
         type: 'subscribe'
       })
     );
+  };
+
+  const miniPlay = () => {
+    socketRef.current.send(
+      JSON.stringify({
+        id: '134fa1dd-86c9-4bd4-ae31-2b8d0db16d98',
+        payload: {
+          query:
+            'mutation ($amount: Float!, $card: String!, $clientSeed: String!) {\n  playHilo(amount: $amount, card: $card, clientSeed: $clientSeed) {\n    _id\n    amount\n    details {\n      ... on HiloGameDetails {\n        __typename\n        cards\n        picks\n      }\n      ... on MinesGameDetails {\n        __typename\n      }\n      ... on DiceGameDetails {\n        __typename\n      }\n      ... on TargetGameDetails {\n        __typename\n      }\n      ... on TowerGameDetails {\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}',
+          variables: { card: '♦K', amount: parseInt(amountRef.current), clientSeed: userIdRef.current }
+        },
+        type: 'subscribe'
+      })
+    );
+  };
+  const getString = (array) => {
+    let string = '';
+    for (let i = 0; i < array.length; i++) {
+      string = string + array[i] + ',';
+    }
+    return string;
   };
 
   // let socket;
@@ -118,11 +128,20 @@ const Hilo = () => {
         if (response.payload.errors && response.payload.errors[0].message === 'INSUFFICIENT_FUNDS_ERROR')
           toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
         else if (response.payload.data) {
-          const playId = response.payload.data.playHilo._id;
-          autoPlay({ playId: playId, pick: selectArray[Math.floor(Math.random() * 2)] });
+          playId = response.payload.data.playHilo._id;
+          autoPlay({ playId: playId, pick: 'LowerOrSame' });
         }
       } else if (response.id === '9dafaba2-98c7-11ee-b9d1-0242ac120002' && response.payload) {
         console.log('-------->', response.payload);
+        if (response.payload.data.hiloPick.__typename === 'SinglePlayerGameBet') {
+          setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.hiloPick }]);
+          if (counter < playNumberRef.current) {
+            counter++;
+            miniPlay();
+          }
+        } else if (response.payload.data.hiloPick.__typename === 'SinglePlayerGameBetInProgress') {
+          autoPlay({ playId: playId, pick: selectArray[Math.floor(Math.random() * 2)] });
+        }
       } else {
         console.log('response =>', response);
       }
@@ -134,6 +153,12 @@ const Hilo = () => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    playNumberRef.current = playNumber;
+    userIdRef.current = userId;
+    amountRef.current = amount;
+  }, [playNumber, amount, userId]);
 
   return (
     <div className="w-screen">
@@ -192,8 +217,12 @@ const Hilo = () => {
               <div className="table-row">
                 <div className="table-cell text-left">No</div>
                 <div className="table-cell text-left">User</div>
+                <div className="table-cell text-left">Amount</div>
+                <div className="table-cell text-left">Cards</div>
+                <div className="table-cell text-left">Picks</div>
+                <div className="table-cell text-left">Id</div>
+                <div className="table-cell text-left">Multiplier</div>
                 <div className="table-cell text-left">Profit</div>
-                <div className="table-cell text-left">Result</div>
               </div>
             </div>
 
@@ -202,8 +231,12 @@ const Hilo = () => {
                 <div className="table-row" key={index}>
                   <div className="table-cell">{index + 1}</div>
                   <div className="table-cell">{item.username}</div>
+                  <div className="table-cell">{item.data.amount}</div>
+                  <div className="table-cell">{getString(item.data.details.cards)}</div>
+                  <div className="table-cell">{getString(item.data.details.picks)}</div>
+                  <div className="table-cell">{item.data.id}</div>
+                  <div className="table-cell">{item.data.multiplier}</div>
                   <div className="table-cell">{item.data.profit}</div>
-                  <div className="table-cell">{item.data.details.result}</div>
                 </div>
               ))}
             </div>
