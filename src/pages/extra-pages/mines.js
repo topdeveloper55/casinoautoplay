@@ -149,6 +149,7 @@ const Mines = () => {
             autoPlay({ random: randomPlay, playId: playId });
           } else if (response.payload.data.minesUncoverTiles.details.mines !== null) {
             playCounter++;
+            console.log('===========>', playCounter)
             setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
             console.log('array---->', response.payload.data.minesUncoverTiles.details.uncovered);
             console.log('array---->', response.payload.data.minesUncoverTiles.details.mines);
@@ -172,6 +173,7 @@ const Mines = () => {
     };
   }, []);
   useEffect(() => {
+    console.log("----------> useeffect")
     if (counter <= playNumber && playCounter !==0) {
       console.log("playcounter---->", playCounter)
       counter++;
