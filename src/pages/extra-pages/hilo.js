@@ -120,10 +120,9 @@ const Hilo = () => {
           const playId = response.payload.data.playHilo._id;
           autoPlay({ playId: playId, pick: selectArray[Math.floor(Math.random() * 2)] });
         }
-      } else if (response.id === '9dafaba2-98c7-11ee-b9d1-0242ac120002' && response.payload){
-        console.log("-------->", response.payload)
-      }
-      else {
+      } else if (response.id === '9dafaba2-98c7-11ee-b9d1-0242ac120002' && response.payload) {
+        console.log('-------->', response.payload);
+      } else {
         console.log('response =>', response);
       }
     };
