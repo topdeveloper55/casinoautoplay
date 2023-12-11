@@ -139,13 +139,13 @@ const Mines = () => {
           autoPlay({ random: random, playId: response.payload.data.playMines._id });
         }
       } else if (response.id === '08ed3549-b044-438f-99c6-acd355d070f1') {
-        console.log(response);
+        console.log("------>", response);
         if (response.payload) {
           if (response.payload.data.minesUncoverTiles.details.mines === null) {
             miningCounter ++ ;
             autoPlay({ random: randomPlay, playId: playId });
           }
-        } else {
+        } else if (response.payload.data.minesUncoverTiles.details.mines !== null) {
           setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
         }
         // if (response.payload) {
