@@ -191,6 +191,7 @@ const Mines = () => {
     };
   };
   // }, []);
+  handleWebsocket();
 
   return (
     <div className="w-screen">
