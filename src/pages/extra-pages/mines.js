@@ -3,6 +3,7 @@ import { toast } from 'react-toastify';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 const Mines = () => {
+  const [userId, setUserID] = useState('');
   const [amount, setAmount] = useState(0);
   const [mines, setMines] = useState(0);
   const [playNumber, setPlayNumber] = useState(1);
@@ -15,9 +16,9 @@ const Mines = () => {
   let username = '';
   let playCounter = 0;
   let counter = 0;
-  let userId = '';
+  let user = '';
   function handleChangeUserId(event) {
-    userId = event.target.value;
+    setUserID(event.target.value);
   }
   function handleChangeAmount(event) {
     setAmount(event.target.value);
@@ -57,6 +58,7 @@ const Mines = () => {
       toast('Please input userToken', { hideProgressBar: false, autoClose: 2000, type: 'error' });
     } else {
       counter = 0;
+      user = userId;
       if (socketRef.current) {
         setTimeout(() => {
           socketRef.current.send(
@@ -181,7 +183,7 @@ const Mines = () => {
           payload: {
             query:
               'mutation ($amount: Float!, $autoCashout: Boolean, $clientSeed: String!, $mines: Int!, $tilesToUncover: [Int!]) {\n  playMines(\n    amount: $amount\n    autoCashout: $autoCashout\n    clientSeed: $clientSeed\n    mines: $mines\n    tilesToUncover: $tilesToUncover\n  ) {\n    __typename\n    ... on SinglePlayerGameBet {\n      id\n      isWin\n      multiplier\n      profit\n      amount\n      details {\n        ... on MinesGameDetails {\n          __typename\n          mines\n          uncovered\n          minesCount\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    ... on SinglePlayerGameBetInProgress {\n      _id\n      amount\n      details {\n        ... on MinesGameDetails {\n          __typename\n          mines\n          uncovered\n          minesCount\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n  }\n}',
-            variables: { mines: parseInt(mines), amount: parseInt(amount), clientSeed: userId }
+            variables: { mines: parseInt(mines), amount: parseInt(amount), clientSeed: user }
           },
           type: 'subscribe'
         })
