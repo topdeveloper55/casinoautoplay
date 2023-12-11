@@ -10,11 +10,10 @@ const Mines = () => {
   const [userToken, setUserToken] = useState('');
   const socketRef = useRef(null);
   const [playData, setPlayData] = useState([]);
-  let playId = [];
+  let playId = '';
   let randomPlay = [];
-  let miningCounter = [];
+  let miningCounter = 0;
   let username = '';
-  let index = 0;
   function handleChangeUserId(event) {
     setUserID(event.target.value);
   }
@@ -74,7 +73,8 @@ const Mines = () => {
         }, 1000);
 
         setTimeout(() => {
-          setInterval(() => {
+          const interval = setInterval(() => {
+            count++;
             socketRef.current.send(
               JSON.stringify({
                 id: '3f2c35f1-dad2-4651-aac8-89f2fe69cc45',
@@ -86,7 +86,10 @@ const Mines = () => {
                 type: 'subscribe'
               })
             );
-          }, 500);
+            if (count >= playNumber) {
+              clearInterval(interval);
+            }
+          }, 40);
         }, 2000);
       }
     }
@@ -106,7 +109,7 @@ const Mines = () => {
         payload: {
           query:
             'mutation ($_id: ID!, $tilesToUncover: [Int!]!) {\n  minesUncoverTiles(_id: $_id, tilesToUncover: $tilesToUncover) {\n    __typename\n    ... on SinglePlayerGameBet {\n      id\n      isWin\n      multiplier\n      profit\n      amount\n      details {\n        ... on MinesGameDetails {\n          __typename\n          mines\n          uncovered\n          minesCount\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    ... on SinglePlayerGameBetInProgress {\n      _id\n      amount\n      details {\n        ... on MinesGameDetails {\n          __typename\n          mines\n          uncovered\n          minesCount\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n  }\n}',
-          variables: { tilesToUncover: [parseInt(data.random[index][miningCounter])], _id: data.playId[index] }
+          variables: { tilesToUncover: [parseInt(data.random[miningCounter])], _id: data.playId }
         },
         type: 'subscribe'
       })
@@ -137,11 +140,10 @@ const Mines = () => {
         if (response.payload.errors && response.payload.errors[0].message === 'INSUFFICIENT_FUNDS_ERROR')
           toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
         else if (response.payload.data.playMines) {
-          playId.push(response.payload.data.playMines._id);
+          playId = response.payload.data.playMines._id;
           const random = getRandomArray();
-          randomPlay.push(random);
-          autoPlay({ random: random, playId: response.payload.data.playMines._id, index: index });
-          index++;
+          randomPlay = random;
+          autoPlay({ random: random, playId: response.payload.data.playMines._id });
         }
       } else if (response.id === '08ed3549-b044-438f-99c6-acd355d070f1') {
         console.log('------>', response);
