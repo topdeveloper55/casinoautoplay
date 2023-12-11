@@ -254,15 +254,15 @@ const Mines = () => {
                 <div className="table-row" key={index}>
                   <div className="table-cell">{index + 1}</div>
                   <div className="table-cell">{item.username}</div>
-                  <div className="table-cell">{item.profit}</div>
+                  <div className="table-cell">{item.data.profit}</div>
                   <div className="table-cell">
                     <div>{getString(item.data.details.mines)}</div>
                   </div>
                   <div className="table-cell">
                     <div>{getString(item.data.details.uncovered)}</div>
                   </div>
-                  <div className="table-cell">{item.data.details.multiplier}</div>
-                  <div className="table-cell">{item.data.details.id}</div>
+                  <div className="table-cell">{item.data.multiplier}</div>
+                  <div className="table-cell">{item.data.id}</div>
                 </div>
               ))}
             </div>
