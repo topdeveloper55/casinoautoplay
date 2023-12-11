@@ -174,6 +174,7 @@ const Mines = () => {
   const miniPlay = (userId) => {
     console.log('----------> useeffect');
     if (counter <= playNumber) {
+      console.log("userId---->", userId)
       counter++;
       miningCounter = 0;
       socketRef.current.send(
