@@ -152,7 +152,7 @@ const Mines = () => {
           type: 'subscribe'
         })
       );
-    }, 100);
+    }, 1000);
   };
   useEffect(() => {
     socket = new WebSocket('wss://bch.games/api/graphql', 'graphql-transport-ws');
