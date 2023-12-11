@@ -149,7 +149,7 @@ const Mines = () => {
             setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
             setTimeout(() => {
               miniPlay();
-            }, 50);
+            }, 1000);
             
           }
         }
