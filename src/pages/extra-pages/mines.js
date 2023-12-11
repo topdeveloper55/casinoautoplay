@@ -119,7 +119,7 @@ const Mines = () => {
   };
   const miniPlay = () => {
     console.log('----------> useeffect', counter);
-    console.log("--------->playnumber", playNumber)
+    console.log('--------->playnumber', playNumber);
     if (counter <= playNumber) {
       console.log('userId---->', userId);
       miningCounter = 0;
@@ -187,8 +187,11 @@ const Mines = () => {
           } else if (response.payload.data.minesUncoverTiles.details.mines !== null) {
             playCounter++;
             setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
-              miniPlay();
-              counter++;
+            if (counter <= playNumber)
+              setTimeout(() => {
+                miniPlay();
+                counter++;
+              }, 40);
           }
         }
         // if (response.payload) {
