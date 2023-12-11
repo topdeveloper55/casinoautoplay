@@ -118,26 +118,24 @@ const Mines = () => {
     return string;
   };
   const miniPlay = () => {
-    console.log('----------> useeffect', counter);
+    console.log('----------> useeffect', userToken);
     console.log('--------->playnumber', playNumber);
     if (counter <= playNumber) {
       console.log('userId---->', userId);
       miningCounter = 0;
-      setTimeout(() => {
-        socketRef.current.send(
-          JSON.stringify({
-            id: '0d7d8090-9791-11ee-b9d1-0242ac120002',
-            payload: {
-              query:
-                '{\n  authenticate(\n    authToken: \n"' +
-                userToken +
-                '"\n  ) {\n    _id\n    username\n    authToken\n    email\n    twoFactorEnabled\n    role\n    countryBlock\n    __typename\n  }\n}',
-              variables: {}
-            },
-            type: 'subscribe'
-          })
-        );
-      }, 40);
+      socketRef.current.send(
+        JSON.stringify({
+          id: '0d7d8090-9791-11ee-b9d1-0242ac120002',
+          payload: {
+            query:
+              '{\n  authenticate(\n    authToken: \n"' +
+              userToken +
+              '"\n  ) {\n    _id\n    username\n    authToken\n    email\n    twoFactorEnabled\n    role\n    countryBlock\n    __typename\n  }\n}',
+            variables: {}
+          },
+          type: 'subscribe'
+        })
+      );
 
       setTimeout(() => {
         socketRef.current.send(
@@ -187,11 +185,10 @@ const Mines = () => {
           } else if (response.payload.data.minesUncoverTiles.details.mines !== null) {
             playCounter++;
             setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
-            if (counter <= playNumber)
-              setTimeout(() => {
-                miniPlay();
-                counter++;
-              }, 40);
+            if (counter <= playNumber) {
+              miniPlay();
+              counter++;
+            }
           }
         }
         // if (response.payload) {
