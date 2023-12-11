@@ -2,13 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+let socket = null;
 const Mines = () => {
   const [userId, setUserID] = useState('');
   const [amount, setAmount] = useState(0);
   const [mines, setMines] = useState(0);
   const [playNumber, setPlayNumber] = useState(1);
   const [userToken, setUserToken] = useState('');
-  const socketRef = useRef(null);
   const [playData, setPlayData] = useState([]);
   let playId = '';
   let randomPlay = [];
@@ -59,9 +59,9 @@ const Mines = () => {
     } else {
       counter = 0;
       user = userId;
-      if (socketRef.current) {
+      if (socket) {
         setTimeout(() => {
-          socketRef.current.send(
+          socket.send(
             JSON.stringify({
               id: '0d7d8090-9791-11ee-b9d1-0242ac120002',
               payload: {
@@ -77,7 +77,7 @@ const Mines = () => {
         }, 1000);
 
         setTimeout(() => {
-          socketRef.current.send(
+          socket.send(
             JSON.stringify({
               id: '3f2c35f1-dad2-4651-aac8-89f2fe69cc45',
               payload: {
@@ -98,7 +98,7 @@ const Mines = () => {
   }
 
   const autoPlay = (data) => {
-    socketRef.current.send(
+    socket.send(
       JSON.stringify({
         id: '08ed3549-b044-438f-99c6-acd355d070f1',
         payload: {
@@ -124,7 +124,7 @@ const Mines = () => {
     if (counter <= playNumber) {
       console.log('userId---->', userId);
       miningCounter = 0;
-      socketRef.current.send(
+      socket.send(
         JSON.stringify({
           id: '0d7d8090-9791-11ee-b9d1-0242ac120002',
           payload: {
@@ -139,7 +139,7 @@ const Mines = () => {
       );
 
       setTimeout(() => {
-        socketRef.current.send(
+        socket.send(
           JSON.stringify({
             id: '3f2c35f1-dad2-4651-aac8-89f2fe69cc45',
             payload: {
@@ -154,12 +154,12 @@ const Mines = () => {
     }
   };
   useEffect(() => {
-    socketRef.current = new WebSocket('wss://bch.games/api/graphql', 'graphql-transport-ws');
-    socketRef.current.onopen = () => {
+    socket = new WebSocket('wss://bch.games/api/graphql', 'graphql-transport-ws');
+    socket.onopen = () => {
       // Once the WebSocket connection is open, you can send your GraphQL request
-      socketRef.current.send(JSON.stringify({ type: 'connection_init' }));
+      socket.send(JSON.stringify({ type: 'connection_init' }));
     };
-    socketRef.current.onmessage = (event) => {
+    socket.onmessage = (event) => {
       // Handle incoming messages from the WebSocket server
       const response = JSON.parse(event.data);
       if (response.id === '0d7d8090-9791-11ee-b9d1-0242ac120002' && response.payload) {
@@ -200,8 +200,8 @@ const Mines = () => {
     };
     return () => {
       // Clean up the WebSocket connection when the component is unmounted
-      if (socketRef.current) {
-        socketRef.current.close();
+      if (socket) {
+        socket.close();
       }
     };
   }, []);
