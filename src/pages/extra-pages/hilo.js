@@ -90,17 +90,19 @@ const Hilo = () => {
   };
 
   const miniPlay = () => {
-    socketRef.current.send(
-      JSON.stringify({
-        id: '134fa1dd-86c9-4bd4-ae31-2b8d0db16d98',
-        payload: {
-          query:
-            'mutation ($amount: Float!, $card: String!, $clientSeed: String!) {\n  playHilo(amount: $amount, card: $card, clientSeed: $clientSeed) {\n    _id\n    amount\n    details {\n      ... on HiloGameDetails {\n        __typename\n        cards\n        picks\n      }\n      ... on MinesGameDetails {\n        __typename\n      }\n      ... on DiceGameDetails {\n        __typename\n      }\n      ... on TargetGameDetails {\n        __typename\n      }\n      ... on TowerGameDetails {\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}',
-          variables: { card: '♦K', amount: parseInt(amountRef.current), clientSeed: userIdRef.current }
-        },
-        type: 'subscribe'
-      })
-    );
+    setTimeout(() => {
+      socketRef.current.send(
+        JSON.stringify({
+          id: '134fa1dd-86c9-4bd4-ae31-2b8d0db16d98',
+          payload: {
+            query:
+              'mutation ($amount: Float!, $card: String!, $clientSeed: String!) {\n  playHilo(amount: $amount, card: $card, clientSeed: $clientSeed) {\n    _id\n    amount\n    details {\n      ... on HiloGameDetails {\n        __typename\n        cards\n        picks\n      }\n      ... on MinesGameDetails {\n        __typename\n      }\n      ... on DiceGameDetails {\n        __typename\n      }\n      ... on TargetGameDetails {\n        __typename\n      }\n      ... on TowerGameDetails {\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}',
+            variables: { card: '♦K', amount: parseInt(amountRef.current), clientSeed: userIdRef.current }
+          },
+          type: 'subscribe'
+        })
+      );
+    }, 500);
   };
   const getString = (array) => {
     let string = '';
