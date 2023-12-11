@@ -72,7 +72,7 @@ const Hilo = () => {
               payload: {
                 query:
                   'mutation ($amount: Float!, $card: String!, $clientSeed: String!) {\n  playHilo(amount: $amount, card: $card, clientSeed: $clientSeed) {\n    _id\n    amount\n    details {\n      ... on HiloGameDetails {\n        __typename\n        cards\n        picks\n      }\n      ... on MinesGameDetails {\n        __typename\n      }\n      ... on DiceGameDetails {\n        __typename\n      }\n      ... on TargetGameDetails {\n        __typename\n      }\n      ... on TowerGameDetails {\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}',
-                variables: { card: "♦K", amount: parseInt(amount), clientSeed: userId }
+                variables: { card: '♦K', amount: parseInt(amount), clientSeed: userId }
               },
               type: 'subscribe'
             })
@@ -102,11 +102,11 @@ const Hilo = () => {
       if (response.id === '2302f5fa-98c0-11ee-b9d1-0242ac120002' && response.payload) {
         username = response.payload.data.authenticate.username;
       } else if (response.id === '134fa1dd-86c9-4bd4-ae31-2b8d0db16d98' && response.payload) {
-        console.log("--------->", response.payload)
+        console.log('--------->', response.payload);
         if (response.payload.errors && response.payload.errors[0].message === 'INSUFFICIENT_FUNDS_ERROR')
           toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
         else if (response.payload.data) {
-          console.log(response.payload)
+          console.log(response.payload);
         }
       } else {
         console.log('response =>', response);
@@ -152,7 +152,6 @@ const Hilo = () => {
         ></input>
       </div>
 
-
       <div className="inline-flex w-full mb-5">
         <div className="flex items-center mr-[28px]">
           <div className="text-[20px]">Play Number</div>
@@ -161,6 +160,14 @@ const Hilo = () => {
           className="items-center text-sm leading-6 text-black rounded-md ring-1 shadow-sm py-1.5 pl-2 pr-3 hover:ring-white bg-gray-300 dark:highlight-white/5 dark:hover:bg-gray-100"
           onChange={handleChangePlayNumber}
         ></input>
+        <button
+          className={`rounded-full bg-gray-300 hover:bg-gray-500 ml-3`}
+          onClick={() => {
+            handlePlay();
+          }}
+        >
+          <div className="mx-[20px]">Play</div>
+        </button>
       </div>
 
       {playData.length != 0 ? (
