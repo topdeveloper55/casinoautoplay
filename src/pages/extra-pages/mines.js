@@ -175,6 +175,7 @@ const Mines = () => {
     if (counter <= playNumber && playCounter !==0) {
       console.log("playcounter---->", playCounter)
       counter++;
+      miningCounter = 0;
       socketRef.current.send(
         JSON.stringify({
           id: '3f2c35f1-dad2-4651-aac8-89f2fe69cc45',
