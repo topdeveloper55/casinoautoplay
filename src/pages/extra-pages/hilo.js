@@ -85,13 +85,14 @@ const Hilo = () => {
     setUserToken(event.target.value);
   }
   const autoPlay = (data) => {
+    console.log("data---->", data._id)
     socketRef.current.send(
       JSON.stringify({
         id: '9dafaba2-98c7-11ee-b9d1-0242ac120002',
         payload: {
           query:
             'mutation ($_id: ID!, $pick: HiloGamePick!) {\n  hiloPick(_id: $_id, pick: $pick) {\n    __typename\n    ... on SinglePlayerGameBet {\n      id\n      isWin\n      multiplier\n      profit\n      amount\n      details {\n        ... on HiloGameDetails {\n          __typename\n          cards\n          picks\n        }\n        ... on MinesGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    ... on SinglePlayerGameBetInProgress {\n      _id\n      amount\n      details {\n        ... on HiloGameDetails {\n          __typename\n          cards\n          picks\n        }\n        ... on MinesGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n  }\n}',
-          variables: { pick: data.pick, _id: data._id }
+          variables: { pick: data.pick, _id: data.playId }
         },
         type: 'subscribe'
       })
