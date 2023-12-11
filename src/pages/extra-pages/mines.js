@@ -130,6 +130,7 @@ const Mines = () => {
       if (response.id === '0d7d8090-9791-11ee-b9d1-0242ac120002' && response.payload) {
         username = response.payload.data.authenticate.username;
       } else if (response.id === '3f2c35f1-dad2-4651-aac8-89f2fe69cc45' && response.payload) {
+        console.log("response---->", response)
         if (response.payload.errors && response.payload.errors[0].message === 'INSUFFICIENT_FUNDS_ERROR')
           toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
         else if (response.payload.data.playMines) {
