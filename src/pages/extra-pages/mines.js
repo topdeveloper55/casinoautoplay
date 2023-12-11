@@ -115,6 +115,13 @@ const Mines = () => {
       })
     );
   };
+  const getString = (array) => {
+    let string = '';
+    for (let i = 0; i < array.length; i++) {
+      string = string + array[i] + ',';
+    }
+    return string;
+  };
 
   useEffect(() => {
     socketRef.current = new WebSocket('wss://bch.games/api/graphql', 'graphql-transport-ws');
@@ -249,16 +256,10 @@ const Mines = () => {
                   <div className="table-cell">{item.username}</div>
                   <div className="table-cell">{item.profit}</div>
                   <div className="table-cell">
-                    <div>
-                      {item.data.details.mines.map((item, index) => (
-                        <div>{item}</div>
-                      ))}
-                    </div>
+                    <div>{getString(item.data.details.mines)}</div>
                   </div>
                   <div className="table-cell">
-                    {item.data.details.uncovered.map((item, index) => (
-                      <div>{item}</div>
-                    ))}
+                    <div>{getString(item.data.details.uncovered)}</div>
                   </div>
                   <div className="table-cell">{item.data.details.multiplier}</div>
                   <div className="table-cell">{item.data.details.id}</div>
