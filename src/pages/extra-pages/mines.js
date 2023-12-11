@@ -150,7 +150,7 @@ const Mines = () => {
             playCounter++;
             setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
             setTimeout(() => {
-              miniPlay();
+              miniPlay(userId);
             }, 1000);
             
           }
@@ -171,10 +171,9 @@ const Mines = () => {
       }
     };
   }, []);
-  const miniPlay = () => {
+  const miniPlay = (userId) => {
     console.log('----------> useeffect');
     if (counter <= playNumber) {
-      console.log('userid---->', user);
       counter++;
       miningCounter = 0;
       socketRef.current.send(
@@ -183,7 +182,7 @@ const Mines = () => {
           payload: {
             query:
               'mutation ($amount: Float!, $autoCashout: Boolean, $clientSeed: String!, $mines: Int!, $tilesToUncover: [Int!]) {\n  playMines(\n    amount: $amount\n    autoCashout: $autoCashout\n    clientSeed: $clientSeed\n    mines: $mines\n    tilesToUncover: $tilesToUncover\n  ) {\n    __typename\n    ... on SinglePlayerGameBet {\n      id\n      isWin\n      multiplier\n      profit\n      amount\n      details {\n        ... on MinesGameDetails {\n          __typename\n          mines\n          uncovered\n          minesCount\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    ... on SinglePlayerGameBetInProgress {\n      _id\n      amount\n      details {\n        ... on MinesGameDetails {\n          __typename\n          mines\n          uncovered\n          minesCount\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n  }\n}',
-            variables: { mines: parseInt(mines), amount: parseInt(amount), clientSeed: user }
+            variables: { mines: parseInt(mines), amount: parseInt(amount), clientSeed: userId }
           },
           type: 'subscribe'
         })
