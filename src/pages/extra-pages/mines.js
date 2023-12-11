@@ -96,9 +96,6 @@ const Mines = () => {
   }
 
   const autoPlay = (data) => {
-    console.log('random----->', data.random);
-    console.log('miningCounter---->', miningCounter);
-    console.log('playid---->', data.playId);
     socketRef.current.send(
       JSON.stringify({
         id: '08ed3549-b044-438f-99c6-acd355d070f1',
@@ -142,17 +139,14 @@ const Mines = () => {
           autoPlay({ random: random, playId: response.payload.data.playMines._id });
         }
       } else if (response.id === '08ed3549-b044-438f-99c6-acd355d070f1') {
-        console.log('------>', response);
         if (response.payload) {
           if (response.payload.data.minesUncoverTiles.details.mines === null) {
             miningCounter++;
             autoPlay({ random: randomPlay, playId: playId });
           } else if (response.payload.data.minesUncoverTiles.details.mines !== null) {
             playCounter++;
-            console.log('===========>', playCounter)
             setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
-            console.log('array---->', response.payload.data.minesUncoverTiles.details.uncovered);
-            console.log('array---->', response.payload.data.minesUncoverTiles.details.mines);
+            miniPlay();
           }
         }
         // if (response.payload) {
@@ -164,7 +158,6 @@ const Mines = () => {
       } else {
       }
     };
-    console.log('random---->', randomPlay, 'playid---->', playId);
     return () => {
       // Clean up the WebSocket connection when the component is unmounted
       if (socketRef.current) {
@@ -172,10 +165,10 @@ const Mines = () => {
       }
     };
   }, []);
-  useEffect(() => {
-    console.log("----------> useeffect")
-    if (counter <= playNumber && playCounter !==0) {
-      console.log("playcounter---->", playCounter)
+  const miniPlay = () => {
+    console.log('----------> useeffect');
+    if (counter <= playNumber && playCounter !== 0) {
+      console.log('playcounter---->', playCounter);
       counter++;
       miningCounter = 0;
       socketRef.current.send(
@@ -190,7 +183,7 @@ const Mines = () => {
         })
       );
     }
-  }, [playCounter]);
+  };
 
   return (
     <div className="w-screen">
