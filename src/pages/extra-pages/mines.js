@@ -145,9 +145,10 @@ const Mines = () => {
             miningCounter ++ ;
             autoPlay({ random: randomPlay, playId: playId });
           }
-        } else if (response.payload.data.minesUncoverTiles.details.mines !== null) {
-          setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
-        }
+          else if (response.payload.data.minesUncoverTiles.details.mines !== null) {
+            setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
+          }
+        } 
         // if (response.payload) {
         //   if (response.payload.data.minesUncoverTiles.multiplier) {
         //     console.log('response.payload.data.minesUncoverTiles------->', response);
