@@ -42,8 +42,6 @@ const Hilo = () => {
       toast('Please input UserID', { hideProgressBar: false, autoClose: 2000, type: 'error' });
     } else if (amount === 0) {
       toast('Please input Amount', { hideProgressBar: false, autoClose: 2000, type: 'error' });
-    } else if (dividing === 0) {
-      toast('Please input Dividing', { hideProgressBar: false, autoClose: 2000, type: 'error' });
     } else if (userToken === '') {
       toast('Please input userToken', { hideProgressBar: false, autoClose: 2000, type: 'error' });
     } else {
