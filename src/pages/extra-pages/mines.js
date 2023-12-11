@@ -14,6 +14,8 @@ const Mines = () => {
   let randomPlay = [];
   let miningCounter = 0;
   let username = '';
+  let playCounter = 0;
+  let counter = 0;
   function handleChangeUserId(event) {
     setUserID(event.target.value);
   }
@@ -54,7 +56,7 @@ const Mines = () => {
     } else if (userToken === '') {
       toast('Please input userToken', { hideProgressBar: false, autoClose: 2000, type: 'error' });
     } else {
-      let count = 0;
+      counter = 0;
       if (socketRef.current) {
         setTimeout(() => {
           socketRef.current.send(
@@ -73,23 +75,17 @@ const Mines = () => {
         }, 1000);
 
         setTimeout(() => {
-          const interval = setInterval(() => {
-            count++;
-            socketRef.current.send(
-              JSON.stringify({
-                id: '3f2c35f1-dad2-4651-aac8-89f2fe69cc45',
-                payload: {
-                  query:
-                    'mutation ($amount: Float!, $autoCashout: Boolean, $clientSeed: String!, $mines: Int!, $tilesToUncover: [Int!]) {\n  playMines(\n    amount: $amount\n    autoCashout: $autoCashout\n    clientSeed: $clientSeed\n    mines: $mines\n    tilesToUncover: $tilesToUncover\n  ) {\n    __typename\n    ... on SinglePlayerGameBet {\n      id\n      isWin\n      multiplier\n      profit\n      amount\n      details {\n        ... on MinesGameDetails {\n          __typename\n          mines\n          uncovered\n          minesCount\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    ... on SinglePlayerGameBetInProgress {\n      _id\n      amount\n      details {\n        ... on MinesGameDetails {\n          __typename\n          mines\n          uncovered\n          minesCount\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n  }\n}',
-                  variables: { mines: parseInt(mines), amount: parseInt(amount), clientSeed: userId }
-                },
-                type: 'subscribe'
-              })
-            );
-            if (count >= playNumber) {
-              clearInterval(interval);
-            }
-          }, 40);
+          socketRef.current.send(
+            JSON.stringify({
+              id: '3f2c35f1-dad2-4651-aac8-89f2fe69cc45',
+              payload: {
+                query:
+                  'mutation ($amount: Float!, $autoCashout: Boolean, $clientSeed: String!, $mines: Int!, $tilesToUncover: [Int!]) {\n  playMines(\n    amount: $amount\n    autoCashout: $autoCashout\n    clientSeed: $clientSeed\n    mines: $mines\n    tilesToUncover: $tilesToUncover\n  ) {\n    __typename\n    ... on SinglePlayerGameBet {\n      id\n      isWin\n      multiplier\n      profit\n      amount\n      details {\n        ... on MinesGameDetails {\n          __typename\n          mines\n          uncovered\n          minesCount\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    ... on SinglePlayerGameBetInProgress {\n      _id\n      amount\n      details {\n        ... on MinesGameDetails {\n          __typename\n          mines\n          uncovered\n          minesCount\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n  }\n}',
+                variables: { mines: parseInt(mines), amount: parseInt(amount), clientSeed: userId }
+              },
+              type: 'subscribe'
+            })
+          );
         }, 2000);
       }
     }
@@ -155,6 +151,7 @@ const Mines = () => {
             setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
             console.log('array---->', response.payload.data.minesUncoverTiles.details.uncovered);
             console.log('array---->', response.payload.data.minesUncoverTiles.details.mines);
+            playCounter++;
           }
         }
         // if (response.payload) {
@@ -174,6 +171,22 @@ const Mines = () => {
       }
     };
   }, []);
+  useEffect(() => {
+    if (counter <= playNumber) {
+      counter++;
+      socketRef.current.send(
+        JSON.stringify({
+          id: '3f2c35f1-dad2-4651-aac8-89f2fe69cc45',
+          payload: {
+            query:
+              'mutation ($amount: Float!, $autoCashout: Boolean, $clientSeed: String!, $mines: Int!, $tilesToUncover: [Int!]) {\n  playMines(\n    amount: $amount\n    autoCashout: $autoCashout\n    clientSeed: $clientSeed\n    mines: $mines\n    tilesToUncover: $tilesToUncover\n  ) {\n    __typename\n    ... on SinglePlayerGameBet {\n      id\n      isWin\n      multiplier\n      profit\n      amount\n      details {\n        ... on MinesGameDetails {\n          __typename\n          mines\n          uncovered\n          minesCount\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    ... on SinglePlayerGameBetInProgress {\n      _id\n      amount\n      details {\n        ... on MinesGameDetails {\n          __typename\n          mines\n          uncovered\n          minesCount\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n  }\n}',
+            variables: { mines: parseInt(mines), amount: parseInt(amount), clientSeed: userId }
+          },
+          type: 'subscribe'
+        })
+      );
+    }
+  }, [playCounter]);
 
   return (
     <div className="w-screen">
