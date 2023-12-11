@@ -10,6 +10,8 @@ const Mines = () => {
   const [playNumber, setPlayNumber] = useState(1);
   const [userToken, setUserToken] = useState('');
   const [playData, setPlayData] = useState([]);
+  const userTokenRef = useRef('');
+  const playNumberRef = useRef(1);
   let playId = '';
   let randomPlay = [];
   let miningCounter = 0;
@@ -121,7 +123,7 @@ const Mines = () => {
   const miniPlay = () => {
     console.log('----------> useeffect', userToken);
     console.log('--------->playnumber', playNumber);
-    if (counter <= playNumber) {
+    if (counter <= playNumberRef.current) {
       console.log('userId---->', userId);
       miningCounter = 0;
       socket.send(
@@ -130,7 +132,7 @@ const Mines = () => {
           payload: {
             query:
               '{\n  authenticate(\n    authToken: \n"' +
-              userToken +
+              userTokenRef.current +
               '"\n  ) {\n    _id\n    username\n    authToken\n    email\n    twoFactorEnabled\n    role\n    countryBlock\n    __typename\n  }\n}',
             variables: {}
           },
@@ -183,7 +185,7 @@ const Mines = () => {
             playCounter++;
             setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
             if (counter <= playNumber) {
-              console.log("usertoken 1111->", userToken)
+              console.log('usertoken 1111->', userToken);
               miniPlay();
               counter++;
             }
@@ -205,6 +207,10 @@ const Mines = () => {
       }
     };
   }, []);
+  useEffect(() => {
+    userTokenRef.current = userToken;
+    playNumberRef.current = playNumber;
+  }, [userToken, playNumber]);
 
   return (
     <div className="w-screen">
