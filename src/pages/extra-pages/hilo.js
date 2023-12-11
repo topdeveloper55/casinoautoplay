@@ -36,7 +36,7 @@ const Hilo = () => {
     } else if (userToken === '') {
       toast('Please input userToken', { hideProgressBar: false, autoClose: 2000, type: 'error' });
     } else {
-      count = 0;
+      counter = 0;
       if (socketRef.current) {
         setTimeout(() => {
           socketRef.current.send(
