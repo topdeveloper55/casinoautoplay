@@ -14,6 +14,7 @@ const Hilo = () => {
   const socketRef = useRef(null);
   const [playData, setPlayData] = useState([]);
   let username = '';
+  let selectArray = ['HigherOrSame', 'LowerOrSame'];
   function handleChangeUserId(event) {
     setUserID(event.target.value);
   }
@@ -83,6 +84,19 @@ const Hilo = () => {
   function handleChangeUserToken(event) {
     setUserToken(event.target.value);
   }
+  const autoPlay = (data) => {
+    socketRef.current.send(
+      JSON.stringify({
+        id: '9dafaba2-98c7-11ee-b9d1-0242ac120002',
+        payload: {
+          query:
+            'mutation ($_id: ID!, $pick: HiloGamePick!) {\n  hiloPick(_id: $_id, pick: $pick) {\n    __typename\n    ... on SinglePlayerGameBet {\n      id\n      isWin\n      multiplier\n      profit\n      amount\n      details {\n        ... on HiloGameDetails {\n          __typename\n          cards\n          picks\n        }\n        ... on MinesGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    ... on SinglePlayerGameBetInProgress {\n      _id\n      amount\n      details {\n        ... on HiloGameDetails {\n          __typename\n          cards\n          picks\n        }\n        ... on MinesGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n  }\n}',
+          variables: { pick: data.pick, _id: data._id }
+        },
+        type: 'subscribe'
+      })
+    );
+  };
 
   // let socket;
 
@@ -100,13 +114,16 @@ const Hilo = () => {
       if (response.id === '2302f5fa-98c0-11ee-b9d1-0242ac120002' && response.payload) {
         username = response.payload.data.authenticate.username;
       } else if (response.id === '134fa1dd-86c9-4bd4-ae31-2b8d0db16d98' && response.payload) {
-        console.log('--------->', response.payload);
         if (response.payload.errors && response.payload.errors[0].message === 'INSUFFICIENT_FUNDS_ERROR')
           toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
         else if (response.payload.data) {
-          console.log(response.payload);
+          const playId = response.payload.data.playHilo._id;
+          autoPlay({ playId: playId, pick: selectArray[Math.floor(Math.random() * 2)] });
         }
-      } else {
+      } else if (response.id === '9dafaba2-98c7-11ee-b9d1-0242ac120002' && response.payload){
+        console.log("-------->", response.payload)
+      }
+      else {
         console.log('response =>', response);
       }
     };
