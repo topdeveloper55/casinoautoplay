@@ -3,7 +3,6 @@ import { toast } from 'react-toastify';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 const Mines = () => {
-  const [userId, setUserID] = useState('');
   const [amount, setAmount] = useState(0);
   const [mines, setMines] = useState(0);
   const [playNumber, setPlayNumber] = useState(1);
@@ -16,8 +15,9 @@ const Mines = () => {
   let username = '';
   let playCounter = 0;
   let counter = 0;
+  let userId = '';
   function handleChangeUserId(event) {
-    setUserID(event.target.value);
+    userId = event.target.value;
   }
   function handleChangeAmount(event) {
     setAmount(event.target.value);
