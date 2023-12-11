@@ -73,8 +73,7 @@ const Mines = () => {
         }, 1000);
 
         setTimeout(() => {
-          const interval = setInterval(() => {
-            count++;
+          for (let i = 1; i <= playNumber; i++) {
             socketRef.current.send(
               JSON.stringify({
                 id: '3f2c35f1-dad2-4651-aac8-89f2fe69cc45',
@@ -86,10 +85,7 @@ const Mines = () => {
                 type: 'subscribe'
               })
             );
-            if (count >= playNumber) {
-              clearInterval(interval);
-            }
-          }, 40);
+          }
         }, 2000);
       }
     }
