@@ -147,7 +147,10 @@ const Mines = () => {
           } else if (response.payload.data.minesUncoverTiles.details.mines !== null) {
             playCounter++;
             setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
-            miniPlay();
+            setTimeout(() => {
+              miniPlay();
+            }, 50);
+            
           }
         }
         // if (response.payload) {
