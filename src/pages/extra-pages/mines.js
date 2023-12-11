@@ -122,7 +122,6 @@ const Mines = () => {
     console.log("--------->playnumber", playNumber)
     if (counter <= playNumber) {
       console.log('userId---->', userId);
-      counter++;
       miningCounter = 0;
       setTimeout(() => {
         socketRef.current.send(
@@ -188,9 +187,8 @@ const Mines = () => {
           } else if (response.payload.data.minesUncoverTiles.details.mines !== null) {
             playCounter++;
             setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
-            setTimeout(() => {
               miniPlay();
-            }, 1000);
+              counter++;
           }
         }
         // if (response.payload) {
