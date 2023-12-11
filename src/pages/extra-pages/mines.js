@@ -147,6 +147,7 @@ const Mines = () => {
           }
           else if (response.payload.data.minesUncoverTiles.details.mines !== null) {
             setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
+            console.log("array---->", response.payload.data.minesUncoverTiles.details.mines)
           }
         } 
         // if (response.payload) {
