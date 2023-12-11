@@ -150,7 +150,7 @@ const Mines = () => {
             playCounter++;
             setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
             setTimeout(() => {
-              miniPlay(userId);
+              miniPlay();
             }, 1000);
             
           }
@@ -171,7 +171,7 @@ const Mines = () => {
       }
     };
   }, []);
-  const miniPlay = (userId) => {
+  const miniPlay = () => {
     console.log('----------> useeffect');
     if (counter <= playNumber) {
       console.log("userId---->", userId)
