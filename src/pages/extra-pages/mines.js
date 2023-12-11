@@ -146,7 +146,7 @@ const Mines = () => {
             autoPlay({ random: randomPlay, playId: playId });
           } else if (response.payload.data.minesUncoverTiles.details.mines !== null) {
             setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
-            console.log('array---->', response.payload.data.minesUncoverTiles.details.mines);
+            console.log('array---->', response.payload.data.minesUncoverTiles.details.uncovered);
           }
         }
         // if (response.payload) {
