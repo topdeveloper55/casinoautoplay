@@ -52,7 +52,7 @@ const Hilo = () => {
         setTimeout(() => {
           socketRef.current.send(
             JSON.stringify({
-              id: '0d7d8090-9791-11ee-b9d1-0242ac120002',
+              id: '2302f5fa-98c0-11ee-b9d1-0242ac120002',
               payload: {
                 query:
                   '{\n  authenticate(\n    authToken: \n"' +
@@ -66,23 +66,17 @@ const Hilo = () => {
         }, 1000);
 
         setTimeout(() => {
-          const interval = setInterval(() => {
-            count++;
-            socketRef.current.send(
-              JSON.stringify({
-                id: 'b37aeb93-b24a-41c4-8ac6-c8a496d99f88',
-                payload: {
-                  query:
-                    'mutation ($amount: Float!, $clientSeed: String!, $dividingPoint: Float!, $mode: DiceGameMode!) {\n  playDice(\n    amount: $amount\n    clientSeed: $clientSeed\n    dividingPoint: $dividingPoint\n    mode: $mode\n  ) {\n    id\n    isWin\n    profit\n    details {\n      ... on DiceGameDetails {\n        __typename\n        result\n        dividingPoint\n      }\n      ... on TargetGameDetails {\n        __typename\n      }\n      ... on MinesGameDetails {\n        __typename\n      }\n      ... on TowerGameDetails {\n        __typename\n      }\n      ... on HiloGameDetails {\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}',
-                  variables: { dividingPoint: 49, mode: 'RollUnder', amount: 10, clientSeed: 'pDZPnfv3aW5udaX3' }
-                },
-                type: 'subscribe'
-              })
-            );
-            if (count >= playNumber) {
-              clearInterval(interval);
-            }
-          }, 40);
+          socketRef.current.send(
+            JSON.stringify({
+              id: '134fa1dd-86c9-4bd4-ae31-2b8d0db16d98',
+              payload: {
+                query:
+                  'mutation ($amount: Float!, $card: String!, $clientSeed: String!) {\n  playHilo(amount: $amount, card: $card, clientSeed: $clientSeed) {\n    _id\n    amount\n    details {\n      ... on HiloGameDetails {\n        __typename\n        cards\n        picks\n      }\n      ... on MinesGameDetails {\n        __typename\n      }\n      ... on DiceGameDetails {\n        __typename\n      }\n      ... on TargetGameDetails {\n        __typename\n      }\n      ... on TowerGameDetails {\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}',
+                variables: { card: "♦k", amount: parseInt(amount), clientSeed: userId }
+              },
+              type: 'subscribe'
+            })
+          );
         }, 2000);
       }
     }
@@ -105,13 +99,13 @@ const Hilo = () => {
     socketRef.current.onmessage = (event) => {
       // Handle incoming messages from the WebSocket server
       const response = JSON.parse(event.data);
-      if (response.id === '0d7d8090-9791-11ee-b9d1-0242ac120002' && response.payload) {
+      if (response.id === '2302f5fa-98c0-11ee-b9d1-0242ac120002' && response.payload) {
         username = response.payload.data.authenticate.username;
-      } else if (response.id === 'b37aeb93-b24a-41c4-8ac6-c8a496d99f88' && response.payload) {
+      } else if (response.id === '134fa1dd-86c9-4bd4-ae31-2b8d0db16d98' && response.payload) {
         if (response.payload.errors && response.payload.errors[0].message === 'INSUFFICIENT_FUNDS_ERROR')
           toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
         else if (response.payload.data.playDice) {
-          setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.playDice }]);
+          console.log(response.payload)
         }
       } else {
         console.log('response =>', response.id);
