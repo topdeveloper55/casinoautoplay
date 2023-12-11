@@ -199,11 +199,6 @@ const Mines = () => {
     }
   };
 
-  // useEffect(() => {
-  const handleWebsocket = () => {};
-  // }, []);
-  handleWebsocket();
-
   return (
     <div className="w-screen">
       <div className="inline-flex mb-3">
