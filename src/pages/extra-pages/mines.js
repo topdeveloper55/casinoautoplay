@@ -12,6 +12,9 @@ const Mines = () => {
   const [playData, setPlayData] = useState([]);
   const userTokenRef = useRef('');
   const playNumberRef = useRef(1);
+  const userIdRef = useRef('');
+  const amountRef = useRef(0);
+  const minesRef = useRef(0);
   let playId = '';
   let randomPlay = [];
   let miningCounter = 0;
@@ -210,7 +213,10 @@ const Mines = () => {
   useEffect(() => {
     userTokenRef.current = userToken;
     playNumberRef.current = playNumber;
-  }, [userToken, playNumber]);
+    userIdRef.current = userId;
+    amountRef.current = amount;
+    minesRef.current = mines;
+  }, [userToken, playNumber, mines, amount, userId]);
 
   return (
     <div className="w-screen">
