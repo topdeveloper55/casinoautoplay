@@ -167,7 +167,7 @@ const Mines = () => {
   }, []);
   const miniPlay = () => {
     console.log('----------> useeffect');
-    if (counter <= playNumber && playCounter !== 0) {
+    if (counter <= playNumber) {
       console.log('playcounter---->', playCounter);
       counter++;
       miningCounter = 0;
