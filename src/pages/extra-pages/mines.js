@@ -249,9 +249,9 @@ const Mines = () => {
                   <div className="table-cell">{item.profit}</div>
                   <div className="table-cell">
                     <div>
-                      {item.details.mines.map((item, index) => (
+                      {/* {item.details.mines.map((item, index) => (
                         <li key={index}>{item}</li>
-                      ))}
+                      ))} */}
                     </div>
                   </div>
                   <div className="table-cell">{item.details.uncovered}</div>
