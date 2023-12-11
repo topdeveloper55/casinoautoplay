@@ -148,10 +148,10 @@ const Mines = () => {
             miningCounter++;
             autoPlay({ random: randomPlay, playId: playId });
           } else if (response.payload.data.minesUncoverTiles.details.mines !== null) {
+            playCounter++;
             setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
             console.log('array---->', response.payload.data.minesUncoverTiles.details.uncovered);
             console.log('array---->', response.payload.data.minesUncoverTiles.details.mines);
-            playCounter++;
           }
         }
         // if (response.payload) {
