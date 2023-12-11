@@ -249,10 +249,16 @@ const Mines = () => {
                   <div className="table-cell">{item.username}</div>
                   <div className="table-cell">{item.profit}</div>
                   <div className="table-cell">
-                    <div>{item.data.details.mines.map((item, index) => ({ item }))}</div>
+                    <div>
+                      {item.data.details.mines.map((item, index) => (
+                        <div>{item}</div>
+                      ))}
+                    </div>
                   </div>
                   <div className="table-cell">
-                    {item.data.details.uncovered.map((item, index) => ({ item }))}
+                    {item.data.details.uncovered.map((item, index) => (
+                      <div>{item}</div>
+                    ))}
                   </div>
                   <div className="table-cell">{item.data.details.multiplier}</div>
                   <div className="table-cell">{item.data.details.id}</div>
