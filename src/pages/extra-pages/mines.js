@@ -122,7 +122,6 @@ const Mines = () => {
     }
     return string;
   };
-  useEffect(() => console.log('useToken ->', userToken), [userToken]);
   const miniPlay = () => {
     console.log('----------> useeffect', counter);
     if (counter <= playNumberRef.current) {
@@ -186,7 +185,7 @@ const Mines = () => {
           } else if (response.payload.data.minesUncoverTiles.details.mines !== null) {
             playCounter++;
             setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
-            if (counter <= playNumber) {
+            if (counter <= playNumberRef.current) {
               console.log('usertoken 1111->', userToken);
               miniPlay();
               counter++;
