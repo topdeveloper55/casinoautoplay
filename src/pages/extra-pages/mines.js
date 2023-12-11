@@ -183,7 +183,7 @@ const Mines = () => {
           } else if (response.payload.data.minesUncoverTiles.details.mines !== null) {
             playCounter++;
             setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
-            if (counter <= playNumberRef.current) {
+            if (counter < playNumberRef.current) {
               console.log('usertoken 1111->', userToken);
               miniPlay();
               counter++;
