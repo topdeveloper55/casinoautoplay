@@ -72,7 +72,7 @@ const Hilo = () => {
               payload: {
                 query:
                   'mutation ($amount: Float!, $card: String!, $clientSeed: String!) {\n  playHilo(amount: $amount, card: $card, clientSeed: $clientSeed) {\n    _id\n    amount\n    details {\n      ... on HiloGameDetails {\n        __typename\n        cards\n        picks\n      }\n      ... on MinesGameDetails {\n        __typename\n      }\n      ... on DiceGameDetails {\n        __typename\n      }\n      ... on TargetGameDetails {\n        __typename\n      }\n      ... on TowerGameDetails {\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}',
-                variables: { card: "♦k", amount: parseInt(amount), clientSeed: userId }
+                variables: { card: "♦K", amount: parseInt(amount), clientSeed: userId }
               },
               type: 'subscribe'
             })
