@@ -137,6 +137,44 @@ const Mines = () => {
     }
   };
 
+  socketRef.current.onmessage = (event) => {
+    // Handle incoming messages from the WebSocket server
+    const response = JSON.parse(event.data);
+    if (response.id === '0d7d8090-9791-11ee-b9d1-0242ac120002' && response.payload) {
+      username = response.payload.data.authenticate.username;
+    } else if (response.id === '3f2c35f1-dad2-4651-aac8-89f2fe69cc45' && response.payload) {
+      console.log('response---->', response);
+      if (response.payload.errors && response.payload.errors[0].message === 'INSUFFICIENT_FUNDS_ERROR')
+        toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
+      else if (response.payload.data.playMines) {
+        playId = response.payload.data.playMines._id;
+        const random = getRandomArray();
+        randomPlay = random;
+        autoPlay({ random: random, playId: response.payload.data.playMines._id });
+      }
+    } else if (response.id === '08ed3549-b044-438f-99c6-acd355d070f1') {
+      if (response.payload) {
+        if (response.payload.data.minesUncoverTiles.details.mines === null) {
+          miningCounter++;
+          autoPlay({ random: randomPlay, playId: playId });
+        } else if (response.payload.data.minesUncoverTiles.details.mines !== null) {
+          playCounter++;
+          setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
+          setTimeout(() => {
+            miniPlay();
+          }, 1000);
+        }
+      }
+      // if (response.payload) {
+      //   if (response.payload.data.minesUncoverTiles.multiplier) {
+      //     console.log('response.payload.data.minesUncoverTiles------->', response);
+      //     setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
+      //   }
+      // }
+    } else {
+    }
+  };
+
   useEffect(() => {
     socketRef.current = new WebSocket('wss://bch.games/api/graphql', 'graphql-transport-ws');
 
@@ -145,43 +183,6 @@ const Mines = () => {
       socketRef.current.send(JSON.stringify({ type: 'connection_init' }));
     };
 
-    socketRef.current.onmessage = (event) => {
-      // Handle incoming messages from the WebSocket server
-      const response = JSON.parse(event.data);
-      if (response.id === '0d7d8090-9791-11ee-b9d1-0242ac120002' && response.payload) {
-        username = response.payload.data.authenticate.username;
-      } else if (response.id === '3f2c35f1-dad2-4651-aac8-89f2fe69cc45' && response.payload) {
-        console.log('response---->', response);
-        if (response.payload.errors && response.payload.errors[0].message === 'INSUFFICIENT_FUNDS_ERROR')
-          toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
-        else if (response.payload.data.playMines) {
-          playId = response.payload.data.playMines._id;
-          const random = getRandomArray();
-          randomPlay = random;
-          autoPlay({ random: random, playId: response.payload.data.playMines._id });
-        }
-      } else if (response.id === '08ed3549-b044-438f-99c6-acd355d070f1') {
-        if (response.payload) {
-          if (response.payload.data.minesUncoverTiles.details.mines === null) {
-            miningCounter++;
-            autoPlay({ random: randomPlay, playId: playId });
-          } else if (response.payload.data.minesUncoverTiles.details.mines !== null) {
-            playCounter++;
-            setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
-            setTimeout(() => {
-              miniPlay();
-            }, 1000);
-          }
-        }
-        // if (response.payload) {
-        //   if (response.payload.data.minesUncoverTiles.multiplier) {
-        //     console.log('response.payload.data.minesUncoverTiles------->', response);
-        //     setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
-        //   }
-        // }
-      } else {
-      }
-    };
     return () => {
       // Clean up the WebSocket connection when the component is unmounted
       if (socketRef.current) {
