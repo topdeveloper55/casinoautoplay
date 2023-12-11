@@ -102,13 +102,14 @@ const Hilo = () => {
       if (response.id === '2302f5fa-98c0-11ee-b9d1-0242ac120002' && response.payload) {
         username = response.payload.data.authenticate.username;
       } else if (response.id === '134fa1dd-86c9-4bd4-ae31-2b8d0db16d98' && response.payload) {
+        console.log("--------->", response.payload)
         if (response.payload.errors && response.payload.errors[0].message === 'INSUFFICIENT_FUNDS_ERROR')
           toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
-        else if (response.payload.data.playDice) {
+        else if (response.payload.data) {
           console.log(response.payload)
         }
       } else {
-        console.log('response =>', response.id);
+        console.log('response =>', response);
       }
     };
     return () => {
@@ -151,24 +152,6 @@ const Hilo = () => {
         ></input>
       </div>
 
-      <div className="inline-flex w-full mb-5">
-        <button
-          className={`rounded-full ${buttonColor1} hover:bg-gray-500 ml-3`}
-          onClick={() => {
-            handleChangeUpdown('up');
-          }}
-        >
-          <div className="mx-[20px]">UP</div>
-        </button>
-        <button
-          className={`rounded-full ${buttonColor2} hover:bg-gray-500 ml-3`}
-          onClick={() => {
-            handleChangeUpdown('down');
-          }}
-        >
-          <div className="mx-[20px]">Down</div>
-        </button>
-      </div>
 
       <div className="inline-flex w-full mb-5">
         <div className="flex items-center mr-[28px]">
@@ -180,23 +163,6 @@ const Hilo = () => {
         ></input>
       </div>
 
-      <div className="inline-flex w-full mb-5">
-        <div className="flex items-center mr-[20px]">
-          <div className="text-[20px]">Dividing Point</div>
-        </div>
-        <input
-          className="items-center text-sm leading-6 text-black rounded-md ring-1 shadow-sm py-1.5 pl-2 pr-3 hover:ring-white bg-gray-300 dark:highlight-white/5 dark:hover:bg-gray-100"
-          onChange={handleChangeDividingPoint}
-        ></input>
-        <button
-          className={`rounded-full bg-gray-300 hover:bg-gray-500 ml-3`}
-          onClick={() => {
-            handlePlay();
-          }}
-        >
-          <div className="mx-[20px]">Play</div>
-        </button>
-      </div>
       {playData.length != 0 ? (
         <>
           <div className="table text-[15px] max-w-xs w-full">
