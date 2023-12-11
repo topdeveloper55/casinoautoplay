@@ -13,6 +13,7 @@ const Hilo = () => {
   const [playData, setPlayData] = useState([]);
   let username = '';
   let playId = '';
+  let counter = 0;
   let selectArray = ['HigherOrSame', 'LowerOrSame'];
   const playNumberRef = useRef(1);
   const userIdRef = useRef('');
@@ -35,7 +36,7 @@ const Hilo = () => {
     } else if (userToken === '') {
       toast('Please input userToken', { hideProgressBar: false, autoClose: 2000, type: 'error' });
     } else {
-      let count = 0;
+      count = 0;
       if (socketRef.current) {
         setTimeout(() => {
           socketRef.current.send(
