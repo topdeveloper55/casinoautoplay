@@ -173,6 +173,7 @@ const Mines = () => {
   }, []);
   useEffect(() => {
     if (counter <= playNumber && playCounter !==0) {
+      console.log("playcounter---->", playCounter)
       counter++;
       socketRef.current.send(
         JSON.stringify({
