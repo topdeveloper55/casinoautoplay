@@ -254,8 +254,8 @@ const Mines = () => {
                   <div className="table-cell">
                     {item.data.details.uncovered.map((item, index) => ({ item }))}
                   </div>
-                  <div className="table-cell">{item.details.multiplier}</div>
-                  <div className="table-cell">{item.details.id}</div>
+                  <div className="table-cell">{item.data.details.multiplier}</div>
+                  <div className="table-cell">{item.data.details.id}</div>
                 </div>
               ))}
             </div>
