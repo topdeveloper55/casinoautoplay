@@ -15,7 +15,7 @@ const Mines = () => {
   let miningCounter = 0;
   let username = '';
   let playCounter = 0;
-  let counter = 0;
+  let counter = 1;
   let user = '';
   function handleChangeUserId(event) {
     setUserID(event.target.value);
@@ -118,7 +118,8 @@ const Mines = () => {
     return string;
   };
   const miniPlay = () => {
-    console.log('----------> useeffect');
+    console.log('----------> useeffect', counter);
+    console.log("--------->playnumber", playNumber)
     if (counter <= playNumber) {
       console.log('userId---->', userId);
       counter++;
