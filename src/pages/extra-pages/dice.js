@@ -14,7 +14,22 @@ const Dice = () => {
   const [userToken, setUserToken] = useState('');
   const socketRef = useRef(null);
   const [playData, setPlayData] = useState([]);
+  const playNumberRef = useRef(1);
+  const userIdRef = useRef('');
+  const amountRef = useRef(0);
+  const dividingRef = useRef(0);
+  const upDownRef = useRef('RollUnder');
+
+  useEffect(() => {
+    playNumberRef.current = playNumber;
+    userIdRef.current = userId;
+    amountRef.current = amount;
+    dividingRef.current = dividing;
+    upDownRef.current = upDown;
+  }, [playNumber, amount, userId]);
+
   let username = '';
+  let counter = 0;
   function handleChangeUserId(event) {
     setUserID(event.target.value);
   }
@@ -48,7 +63,7 @@ const Dice = () => {
     } else if (userToken === '') {
       toast('Please input userToken', { hideProgressBar: false, autoClose: 2000, type: 'error' });
     } else {
-      let count = 0;
+      counter = 0;
       if (socketRef.current) {
         setTimeout(() => {
           socketRef.current.send(
@@ -67,23 +82,17 @@ const Dice = () => {
         }, 1000);
 
         setTimeout(() => {
-          const interval = setInterval(() => {
-            count++;
-            socketRef.current.send(
-              JSON.stringify({
-                id: 'b37aeb93-b24a-41c4-8ac6-c8a496d99f88',
-                payload: {
-                  query:
-                    'mutation ($amount: Float!, $clientSeed: String!, $dividingPoint: Float!, $mode: DiceGameMode!) {\n  playDice(\n    amount: $amount\n    clientSeed: $clientSeed\n    dividingPoint: $dividingPoint\n    mode: $mode\n  ) {\n    id\n    isWin\n    profit\n    details {\n      ... on DiceGameDetails {\n        __typename\n        result\n        dividingPoint\n      }\n      ... on TargetGameDetails {\n        __typename\n      }\n      ... on MinesGameDetails {\n        __typename\n      }\n      ... on TowerGameDetails {\n        __typename\n      }\n      ... on HiloGameDetails {\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}',
-                  variables: { dividingPoint: parseInt(dividing), mode: 'RollUnder', amount: parseInt(amount), clientSeed: userId }
-                },
-                type: 'subscribe'
-              })
-            );
-            if (count >= playNumber) {
-              clearInterval(interval);
-            }
-          }, 40);
+          socketRef.current.send(
+            JSON.stringify({
+              id: 'b37aeb93-b24a-41c4-8ac6-c8a496d99f88',
+              payload: {
+                query:
+                  'mutation ($amount: Float!, $clientSeed: String!, $dividingPoint: Float!, $mode: DiceGameMode!) {\n  playDice(\n    amount: $amount\n    clientSeed: $clientSeed\n    dividingPoint: $dividingPoint\n    mode: $mode\n  ) {\n    id\n    isWin\n    profit\n    details {\n      ... on DiceGameDetails {\n        __typename\n        result\n        dividingPoint\n      }\n      ... on TargetGameDetails {\n        __typename\n      }\n      ... on MinesGameDetails {\n        __typename\n      }\n      ... on TowerGameDetails {\n        __typename\n      }\n      ... on HiloGameDetails {\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}',
+                variables: { dividingPoint: parseInt(dividingRef.current), mode: upDownRef.current, amount: parseInt(amountRef.current), clientSeed: userIdRef.current }
+              },
+              type: 'subscribe'
+            })
+          );
         }, 2000);
       }
     }
@@ -92,6 +101,23 @@ const Dice = () => {
   function handleChangeUserToken(event) {
     setUserToken(event.target.value);
   }
+  const autoPlay = () => {
+    setTimeout(() => {
+      socketRef.current.send(
+        JSON.stringify({
+          id: 'b37aeb93-b24a-41c4-8ac6-c8a496d99f88',
+          payload: {
+            query:
+              'mutation ($amount: Float!, $clientSeed: String!, $dividingPoint: Float!, $mode: DiceGameMode!) {\n  playDice(\n    amount: $amount\n    clientSeed: $clientSeed\n    dividingPoint: $dividingPoint\n    mode: $mode\n  ) {\n    id\n    isWin\n    profit\n    details {\n      ... on DiceGameDetails {\n        __typename\n        result\n        dividingPoint\n      }\n      ... on TargetGameDetails {\n        __typename\n      }\n      ... on MinesGameDetails {\n        __typename\n      }\n      ... on TowerGameDetails {\n        __typename\n      }\n      ... on HiloGameDetails {\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}',
+            variables: { dividingPoint: parseInt(dividingRef.current), mode: upDownRef.current, amount: parseInt(amountRef.current), clientSeed: userIdRef.current }
+          },
+          type: 'subscribe'
+        })
+      );
+    }, 500);
+  }
+
+  
 
   // let socket;
 
@@ -113,6 +139,9 @@ const Dice = () => {
           toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
         else if (response.payload.data.playDice) {
           setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.playDice }]);
+          if(counter)
+          autoPlay();
+          counter++;
         }
       } else {
         console.log('response =>', response.id);
