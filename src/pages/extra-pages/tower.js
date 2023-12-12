@@ -22,17 +22,17 @@ const Tower = () => {
   const amountRef = useRef(0);
   function handleChangeHard(status) {
     if (status === 'Hard') {
-      setUpDown('Hard');
+      setDifficulty('Hard');
       setButtonColor1('bg-sky-600');
       setButtonColor2('bg-gray-300');
       setButtonColor3('bg-gray-300');
     } else if (status === 'Medium') {
-      setUpDown('Medium');
+      setDifficulty('Medium');
       setButtonColor1('bg-gray-300');
       setButtonColor2('bg-sky-600');
       setButtonColor3('bg-gray-300');
     } else if (status === 'Easy') {
-      setUpDown('Easy');
+      setDifficulty('Easy');
       setButtonColor1('bg-gray-300');
       setButtonColor3('bg-sky-600');
       setButtonColor2('bg-gray-300');
