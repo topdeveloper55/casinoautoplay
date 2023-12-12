@@ -156,13 +156,13 @@ const Tower = () => {
         }
       } else if (response.id === '9dafaba2-98c7-11ee-b9d1-0242ac120002' && response.payload) {
         console.log('-------->', response.payload);
-        if (response.payload.data.hiloPick.__typename === 'SinglePlayerGameBet') {
+        if (response.payload.data.towerSelectTiles.__typename === 'SinglePlayerGameBet') {
           setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.towerSelectTiles }]);
           if (counter < playNumberRef.current) {
             counter++;
             miniPlay();
           }
-        } else if (response.payload.data.hiloPick.__typename === 'SinglePlayerGameBetInProgress') {
+        } else if (response.payload.data.towerSelectTiles.__typename === 'SinglePlayerGameBetInProgress') {
           let array = [0, 1, 2, 3];
           autoPlay({ playId: playId, tilesToUncover: [array[Math.floor(Math.random() * array.length)]] });
         }
