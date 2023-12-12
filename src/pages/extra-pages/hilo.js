@@ -215,7 +215,7 @@ const Hilo = () => {
 
       {playData.length != 0 ? (
         <>
-          <div className="table text-[15px] max-w-xs w-full">
+          <div className="table text-[15px] w-full">
             <div className="table-header-group">
               <div className="table-row">
                 <div className="table-cell text-left">No</div>
