@@ -26,7 +26,7 @@ const Dice = () => {
     amountRef.current = amount;
     dividingRef.current = dividing;
     upDownRef.current = upDown;
-  }, [playNumber, amount, userId]);
+  }, [playNumber, amount, userId, dividing, upDown]);
 
   let username = '';
   let counter = 0;
