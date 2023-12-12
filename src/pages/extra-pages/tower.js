@@ -268,8 +268,6 @@ const Tower = () => {
                 <div className="table-cell text-left">No</div>
                 <div className="table-cell text-left">User</div>
                 <div className="table-cell text-left">Amount</div>
-                <div className="table-cell text-left">Cards</div>
-                <div className="table-cell text-left">Picks</div>
                 <div className="table-cell text-left">Id</div>
                 <div className="table-cell text-left">Multiplier</div>
                 <div className="table-cell text-left">Profit</div>
@@ -282,8 +280,6 @@ const Tower = () => {
                   <div className="table-cell">{index + 1}</div>
                   <div className="table-cell">{item.username}</div>
                   <div className="table-cell">{item.data.amount}</div>
-                  <div className="table-cell">{getString(item.data.details.cards)}</div>
-                  <div className="table-cell">{getString(item.data.details.picks)}</div>
                   <div className="table-cell">{item.data.id}</div>
                   <div className="table-cell">{item.data.multiplier}</div>
                   <div className="table-cell">{item.data.profit}</div>
