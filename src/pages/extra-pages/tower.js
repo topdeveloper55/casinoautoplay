@@ -158,6 +158,7 @@ const Tower = () => {
         console.log('-------->', response.payload);
         if (response.payload.data.towerSelectTiles.__typename === 'SinglePlayerGameBet') {
           setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.towerSelectTiles }]);
+          console.log("counter--->", counter, "playNumber----->", playNumberRef.current)
           if (counter < playNumberRef.current) {
             counter++;
             miniPlay();
@@ -219,7 +220,7 @@ const Tower = () => {
         <button
           className={`rounded-full ${buttonColor1} hover:bg-gray-500 ml-3`}
           onClick={() => {
-            handleChangeUpdown('Hard');
+            handleChangeHard('Hard');
           }}
         >
           <div className="mx-[20px]">Hard</div>
@@ -227,7 +228,7 @@ const Tower = () => {
         <button
           className={`rounded-full ${buttonColor2} hover:bg-gray-500 ml-3`}
           onClick={() => {
-            handleChangeUpdown('Medium');
+            handleChangeHard('Medium');
           }}
         >
           <div className="mx-[20px]">Medium</div>
@@ -235,7 +236,7 @@ const Tower = () => {
         <button
           className={`rounded-full ${buttonColor3} hover:bg-gray-500 ml-3`}
           onClick={() => {
-            handleChangeUpdown('Easy');
+            handleChangeHard('Easy');
           }}
         >
           <div className="mx-[20px]">Easy</div>
