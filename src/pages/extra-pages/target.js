@@ -5,15 +5,23 @@ import 'react-toastify/dist/ReactToastify.css';
 const Target = () => {
   const [userId, setUserID] = useState('');
   const [amount, setAmount] = useState(0);
-  const [upDown, setUpDown] = useState('RollUnder');
-  const [buttonColor1, setButtonColor1] = useState('bg-sky-600');
-  const [buttonColor2, setButtonColor2] = useState('bg-gray-300');
   const [target, setTarget] = useState(0);
   const [playNumber, setPlayNumber] = useState(1);
   const [userToken, setUserToken] = useState('');
   const socketRef = useRef(null);
   const [playData, setPlayData] = useState([]);
   let username = '';
+  let count = 0;
+  const targetRef = useRef(0);
+  const amountRef = useRef(0);
+  const userIdRef = useRef('');
+  const playNumberRef = useRef(0);
+  useEffect(() => {
+    userIdRef.current = userId;
+    amountRef.current = amount;
+    targetRef.current = target;
+    playNumberRef.current = playNumber;
+  }, [playNumber, amount, userId, target]);
   function handleChangeUserId(event) {
     setUserID(event.target.value);
   }
@@ -26,17 +34,7 @@ const Target = () => {
   function handleChangePlayNumber(event) {
     setPlayNumber(parseInt(event.target.value));
   }
-  function handleChangeUpdown(status) {
-    if (status === 'up') {
-      setUpDown('RollUnder');
-      setButtonColor1('bg-sky-600');
-      setButtonColor2('bg-gray-300');
-    } else if (status === 'down') {
-      setUpDown('RollOver');
-      setButtonColor1('bg-gray-300');
-      setButtonColor2('bg-sky-600');
-    }
-  }
+
   const handlePlay = async () => {
     if (userId === '') {
       toast('Please input UserID', { hideProgressBar: false, autoClose: 2000, type: 'error' });
@@ -47,7 +45,7 @@ const Target = () => {
     } else if (userToken === '') {
       toast('Please input userToken', { hideProgressBar: false, autoClose: 2000, type: 'error' });
     } else {
-      let count = 0;
+      count = 0;
       if (socketRef.current) {
         setTimeout(() => {
           socketRef.current.send(
@@ -66,23 +64,17 @@ const Target = () => {
         }, 1000);
 
         setTimeout(() => {
-          const interval = setInterval(() => {
-            count++;
-            socketRef.current.send(
-              JSON.stringify({
-                id: 'b37aeb93-b24a-41c4-8ac6-c8a496d99f88',
-                payload: {
-                  query:
-                  "mutation ($amount: Float!, $clientSeed: String!, $targetMultiplier: Float!) {\n  playTarget(\n    amount: $amount\n    clientSeed: $clientSeed\n    targetMultiplier: $targetMultiplier\n  ) {\n    id\n    isWin\n    profit\n    details {\n      ... on DiceGameDetails {\n        __typename\n      }\n      ... on TargetGameDetails {\n        __typename\n        result\n      }\n      ... on MinesGameDetails {\n        __typename\n      }\n      ... on TowerGameDetails {\n        __typename\n      }\n      ... on HiloGameDetails {\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}",
-                  variables: { targetMultiplier: parseInt(target), amount: parseInt(amount), clientSeed: userId }
-                },
-                type: 'subscribe'
-              })
-            );
-            if (count >= playNumber) {
-              clearInterval(interval);
-            }
-          }, 40);
+          socketRef.current.send(
+            JSON.stringify({
+              id: 'b37aeb93-b24a-41c4-8ac6-c8a496d99f88',
+              payload: {
+                query:
+                  'mutation ($amount: Float!, $clientSeed: String!, $targetMultiplier: Float!) {\n  playTarget(\n    amount: $amount\n    clientSeed: $clientSeed\n    targetMultiplier: $targetMultiplier\n  ) {\n    id\n    isWin\n    profit\n    details {\n      ... on DiceGameDetails {\n        __typename\n      }\n      ... on TargetGameDetails {\n        __typename\n        result\n      }\n      ... on MinesGameDetails {\n        __typename\n      }\n      ... on TowerGameDetails {\n        __typename\n      }\n      ... on HiloGameDetails {\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}',
+                variables: { targetMultiplier: parseInt(targetRef.current), amount: parseInt(amountRef.current), clientSeed: userIdRef.current }
+              },
+              type: 'subscribe'
+            })
+          );
         }, 2000);
       }
     }
@@ -90,6 +82,22 @@ const Target = () => {
 
   function handleChangeUserToken(event) {
     setUserToken(event.target.value);
+  }
+
+  const autoPlay = () => {
+    setTimeout(() => {
+      socketRef.current.send(
+        JSON.stringify({
+          id: 'b37aeb93-b24a-41c4-8ac6-c8a496d99f88',
+          payload: {
+            query:
+              'mutation ($amount: Float!, $clientSeed: String!, $targetMultiplier: Float!) {\n  playTarget(\n    amount: $amount\n    clientSeed: $clientSeed\n    targetMultiplier: $targetMultiplier\n  ) {\n    id\n    isWin\n    profit\n    details {\n      ... on DiceGameDetails {\n        __typename\n      }\n      ... on TargetGameDetails {\n        __typename\n        result\n      }\n      ... on MinesGameDetails {\n        __typename\n      }\n      ... on TowerGameDetails {\n        __typename\n      }\n      ... on HiloGameDetails {\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}',
+            variables: { targetMultiplier: parseInt(targetRef.current), amount: parseInt(amountRef.current), clientSeed: userIdRef.current }
+          },
+          type: 'subscribe'
+        })
+      );
+    }, 500);
   }
 
   // let socket;
@@ -112,6 +120,10 @@ const Target = () => {
           toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
         else if (response.payload.data.playTarget) {
           setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.playTarget }]);
+          if(counter < playNumberRef.current){
+            autoPlay();
+            counter++;
+          }
         }
       } else {
         console.log('response =>', response.id);
