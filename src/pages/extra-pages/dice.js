@@ -139,7 +139,7 @@ const Dice = () => {
           toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
         else if (response.payload.data.playDice) {
           setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.playDice }]);
-          if(counter)
+          if(counter < playNumberRef.current)
           autoPlay();
           counter++;
         }
