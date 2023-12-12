@@ -11,7 +11,7 @@ const Target = () => {
   const socketRef = useRef(null);
   const [playData, setPlayData] = useState([]);
   let username = '';
-  let count = 0;
+  let counter = 0;
   const targetRef = useRef(0);
   const amountRef = useRef(0);
   const userIdRef = useRef('');
