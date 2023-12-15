@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
 // material-ui
@@ -48,8 +48,8 @@ function a11yProps(index) {
 const Profile = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-
   const { logout, user } = useAuth();
+
   const handleLogout = async () => {
     try {
       await logout();

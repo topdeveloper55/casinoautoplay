@@ -3,7 +3,6 @@ import { toast } from 'react-toastify';
 import useAuth from 'hooks/useAuth';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-let socket = null;
 const Mines = () => {
   const [amount, setAmount] = useState(0);
   const [mines, setMines] = useState(0);
@@ -14,13 +13,17 @@ const Mines = () => {
   const userIdRef = useRef('');
   const amountRef = useRef(0);
   const minesRef = useRef(0);
+  const [balance, setBalance] = useState(0);
+  const balanceRef = useRef(0);
+  const socketRef = useRef(null);
+  const miningLimitRef = useRef(0);
+  const [miningLimit, setMiningLimit] = useState(0);
   let playId = '';
   let randomPlay = [];
   let miningCounter = 0;
   let username = '';
-  let playCounter = 0;
   let counter = 1;
-  const {user} = useAuth();
+  const { user } = useAuth();
   const userToken = user.authToken;
   function handleChangeAmount(event) {
     setAmount(event.target.value);
@@ -30,6 +33,9 @@ const Mines = () => {
   }
   function handleChangePlayNumber(event) {
     setPlayNumber(parseInt(event.target.value));
+  }
+  function handleChangeMiningLimit(event) {
+    setMiningLimit(parseInt(event.target.value));
   }
   const getRandomArray = () => {
     function shuffleArray(array) {
@@ -58,9 +64,9 @@ const Mines = () => {
       toast('Please input userToken', { hideProgressBar: false, autoClose: 2000, type: 'error' });
     } else {
       counter = 0;
-      if (socket) {
+      if (socketRef.current) {
         setTimeout(() => {
-          socket.send(
+          socketRef.current.send(
             JSON.stringify({
               id: '0d7d8090-9791-11ee-b9d1-0242ac120002',
               payload: {
@@ -76,7 +82,7 @@ const Mines = () => {
         }, 1000);
 
         setTimeout(() => {
-          socket.send(
+          socketRef.current.send(
             JSON.stringify({
               id: '3f2c35f1-dad2-4651-aac8-89f2fe69cc45',
               payload: {
@@ -93,17 +99,32 @@ const Mines = () => {
   };
 
   const autoPlay = (data) => {
-    socket.send(
-      JSON.stringify({
-        id: '08ed3549-b044-438f-99c6-acd355d070f1',
-        payload: {
-          query:
-            'mutation ($_id: ID!, $tilesToUncover: [Int!]!) {\n  minesUncoverTiles(_id: $_id, tilesToUncover: $tilesToUncover) {\n    __typename\n    ... on SinglePlayerGameBet {\n      id\n      isWin\n      multiplier\n      profit\n      amount\n      details {\n        ... on MinesGameDetails {\n          __typename\n          mines\n          uncovered\n          minesCount\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    ... on SinglePlayerGameBetInProgress {\n      _id\n      amount\n      details {\n        ... on MinesGameDetails {\n          __typename\n          mines\n          uncovered\n          minesCount\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n  }\n}',
-          variables: { tilesToUncover: [parseInt(data.random[miningCounter])], _id: data.playId }
-        },
-        type: 'subscribe'
-      })
-    );
+    console.log('miningcounter--------->', miningCounter);
+    if (miningCounter < miningLimitRef.current) {
+      socketRef.current.send(
+        JSON.stringify({
+          id: '08ed3549-b044-438f-99c6-acd355d070f1',
+          payload: {
+            query:
+              'mutation ($_id: ID!, $tilesToUncover: [Int!]!) {\n  minesUncoverTiles(_id: $_id, tilesToUncover: $tilesToUncover) {\n    __typename\n    ... on SinglePlayerGameBet {\n      id\n      isWin\n      multiplier\n      profit\n      amount\n      details {\n        ... on MinesGameDetails {\n          __typename\n          mines\n          uncovered\n          minesCount\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    ... on SinglePlayerGameBetInProgress {\n      _id\n      amount\n      details {\n        ... on MinesGameDetails {\n          __typename\n          mines\n          uncovered\n          minesCount\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n  }\n}',
+            variables: { tilesToUncover: [parseInt(data.random[miningCounter])], _id: data.playId }
+          },
+          type: 'subscribe'
+        })
+      );
+    } else {
+      socketRef.current.send(
+        JSON.stringify({
+          id: '08ed3549-b044-438f-99c6-acd355d070f1',
+          payload: {
+            query:
+              'mutation ($_id: ID!) {\n  minesCashout(_id: $_id) {\n    id\n    isWin\n    multiplier\n    profit\n    amount\n    details {\n      ... on MinesGameDetails {\n        __typename\n        mines\n        uncovered\n        minesCount\n      }\n      ... on TowerGameDetails {\n        __typename\n      }\n      ... on DiceGameDetails {\n        __typename\n      }\n      ... on TargetGameDetails {\n        __typename\n      }\n      ... on HiloGameDetails {\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}',
+            variables: { _id: data.playId }
+          },
+          type: 'subscribe'
+        })
+      );
+    }
   };
   const getString = (array) => {
     let string = '';
@@ -114,22 +135,8 @@ const Mines = () => {
   };
   const miniPlay = () => {
     miningCounter = 0;
-    socket.send(
-      JSON.stringify({
-        id: '0d7d8090-9791-11ee-b9d1-0242ac120002',
-        payload: {
-          query:
-            '{\n  authenticate(\n    authToken: \n"' +
-            userTokenRef.current +
-            '"\n  ) {\n    _id\n    username\n    authToken\n    email\n    twoFactorEnabled\n    role\n    countryBlock\n    __typename\n  }\n}',
-          variables: {}
-        },
-        type: 'subscribe'
-      })
-    );
-
     setTimeout(() => {
-      socket.send(
+      socketRef.current.send(
         JSON.stringify({
           id: '3f2c35f1-dad2-4651-aac8-89f2fe69cc45',
           payload: {
@@ -142,19 +149,31 @@ const Mines = () => {
       );
     }, 1000);
   };
+  const getbalence = async () => {
+    socketRef.current.send(
+      JSON.stringify({
+        id: 'f454cbb6-d074-470d-9aa4-835dc10904a4',
+        payload: {
+          query: 'subscription {\n  balance {\n    before\n    after\n  }\n}',
+          variables: {}
+        },
+        type: 'subscribe'
+      })
+    );
+  };
   useEffect(() => {
-    socket = new WebSocket('wss://bch.games/api/graphql', 'graphql-transport-ws');
-    socket.onopen = () => {
+    socketRef.current = new WebSocket('wss://bch.games/api/graphql', 'graphql-transport-ws');
+    socketRef.current.onopen = () => {
       // Once the WebSocket connection is open, you can send your GraphQL request
-      socket.send(JSON.stringify({ type: 'connection_init' }));
+      socketRef.current.send(JSON.stringify({ type: 'connection_init' }));
     };
-    socket.onmessage = (event) => {
+    socketRef.current.onmessage = (event) => {
       // Handle incoming messages from the WebSocket server
       const response = JSON.parse(event.data);
       if (response.id === '0d7d8090-9791-11ee-b9d1-0242ac120002' && response.payload) {
         username = response.payload.data.authenticate.username;
+        getbalence();
       } else if (response.id === '3f2c35f1-dad2-4651-aac8-89f2fe69cc45' && response.payload) {
-        console.log('response---->', response);
         if (response.payload.errors && response.payload.errors[0].message === 'INSUFFICIENT_FUNDS_ERROR')
           toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
         else if (response.payload.data.playMines) {
@@ -165,12 +184,19 @@ const Mines = () => {
         }
       } else if (response.id === '08ed3549-b044-438f-99c6-acd355d070f1') {
         if (response.payload) {
-          if (response.payload.data.minesUncoverTiles.details.mines === null) {
-            miningCounter++;
-            autoPlay({ random: randomPlay, playId: playId });
-          } else if (response.payload.data.minesUncoverTiles.details.mines !== null) {
-            playCounter++;
-            setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
+          if (response.payload.data.minesUncoverTiles) {
+            if (response.payload.data.minesUncoverTiles.details.mines === null) {
+              miningCounter++;
+              autoPlay({ random: randomPlay, playId: playId });
+            } else if (response.payload.data.minesUncoverTiles.details.mines !== null) {
+              setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
+              if (counter < playNumberRef.current) {
+                miniPlay();
+                counter++;
+              }
+            }
+          } else if (response.payload.data.minesCashout) {
+            setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesCashout }]);
             if (counter < playNumberRef.current) {
               miniPlay();
               counter++;
@@ -183,13 +209,17 @@ const Mines = () => {
         //     setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
         //   }
         // }
+      } else if (response.id == 'f454cbb6-d074-470d-9aa4-835dc10904a4') {
+        if (response.payload.data.balance) {
+          setBalance(response.payload.data.balance.after);
+        }
       } else {
       }
     };
     return () => {
-      // Clean up the WebSocket connection when the component is unmounted
-      if (socket) {
-        socket.close();
+      // Clean up the WebsocketRef.current connection when the component is unmounted
+      if (socketRef.current) {
+        socketRef.current.close();
       }
     };
   }, []);
@@ -199,11 +229,12 @@ const Mines = () => {
     userIdRef.current = user.userId;
     amountRef.current = amount;
     minesRef.current = mines;
-  }, [userToken, playNumber, mines, amount]);
+    balanceRef.current = balance;
+    miningLimitRef.current = miningLimit;
+  }, [userToken, playNumber, mines, amount, balance, miningLimit]);
 
   return (
     <div className="w-screen">
-
       <div className="inline-flex w-full mb-5">
         <div className="flex items-center mr-[58px]">
           <div className="text-[20px]">Amount</div>
@@ -225,6 +256,16 @@ const Mines = () => {
       </div>
 
       <div className="inline-flex w-full mb-5">
+        <div className="flex items-center mr-[58px]">
+          <div className="text-[20px]">Mining limit</div>
+        </div>
+        <input
+          className="items-center text-sm leading-6 text-black rounded-md ring-1 shadow-sm py-1.5 pl-2 pr-3 hover:ring-white bg-gray-300 dark:highlight-white/5 dark:hover:bg-gray-100"
+          onChange={handleChangeMiningLimit}
+        ></input>
+      </div>
+
+      <div className="inline-flex w-full mb-5">
         <div className="flex items-center mr-[20px]">
           <div className="text-[20px]">Mines</div>
         </div>
@@ -240,6 +281,14 @@ const Mines = () => {
         >
           <div className="mx-[20px]">Play</div>
         </button>
+      </div>
+      <div className="inline-flex w-full mb-5">
+        <div className="flex items-center mr-[20px]">
+          <div className="text-[20px]">Balance:</div>
+        </div>
+        <div className="flex items-center mr-[20px]">
+          <div className="text-[20px]">{balanceRef.current}</div>
+        </div>
       </div>
       {playData.length != 0 ? (
         <>

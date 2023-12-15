@@ -18,7 +18,9 @@ const Dice = () => {
   const amountRef = useRef(0);
   const dividingRef = useRef(0);
   const upDownRef = useRef('RollUnder');
-  const {user} = useAuth();
+  const { user } = useAuth();
+  const [balance, setBalance] = useState(0);
+  const balanceRef = useRef(0);
   const userToken = user.authToken;
   useEffect(() => {
     playNumberRef.current = playNumber;
@@ -26,7 +28,8 @@ const Dice = () => {
     amountRef.current = amount;
     dividingRef.current = dividing;
     upDownRef.current = upDown;
-  }, [playNumber, amount, dividing, upDown]);
+    balanceRef.current = balance;
+  }, [playNumber, amount, dividing, upDown, balance]);
 
   let username = '';
   let counter = 0;
@@ -83,7 +86,12 @@ const Dice = () => {
               payload: {
                 query:
                   'mutation ($amount: Float!, $clientSeed: String!, $dividingPoint: Float!, $mode: DiceGameMode!) {\n  playDice(\n    amount: $amount\n    clientSeed: $clientSeed\n    dividingPoint: $dividingPoint\n    mode: $mode\n  ) {\n    id\n    isWin\n    profit\n    details {\n      ... on DiceGameDetails {\n        __typename\n        result\n        dividingPoint\n      }\n      ... on TargetGameDetails {\n        __typename\n      }\n      ... on MinesGameDetails {\n        __typename\n      }\n      ... on TowerGameDetails {\n        __typename\n      }\n      ... on HiloGameDetails {\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}',
-                variables: { dividingPoint: parseInt(dividingRef.current), mode: upDownRef.current, amount: parseInt(amountRef.current), clientSeed: userIdRef.current }
+                variables: {
+                  dividingPoint: parseInt(dividingRef.current),
+                  mode: upDownRef.current,
+                  amount: parseInt(amountRef.current),
+                  clientSeed: userIdRef.current
+                }
               },
               type: 'subscribe'
             })
@@ -91,6 +99,19 @@ const Dice = () => {
         }, 2000);
       }
     }
+  };
+
+  const getbalence = async () => {
+    socketRef.current.send(
+      JSON.stringify({
+        id: 'f454cbb6-d074-470d-9aa4-835dc10904a4',
+        payload: {
+          query: 'subscription {\n  balance {\n    before\n    after\n  }\n}',
+          variables: {}
+        },
+        type: 'subscribe'
+      })
+    );
   };
 
   const autoPlay = () => {
@@ -101,15 +122,18 @@ const Dice = () => {
           payload: {
             query:
               'mutation ($amount: Float!, $clientSeed: String!, $dividingPoint: Float!, $mode: DiceGameMode!) {\n  playDice(\n    amount: $amount\n    clientSeed: $clientSeed\n    dividingPoint: $dividingPoint\n    mode: $mode\n  ) {\n    id\n    isWin\n    profit\n    details {\n      ... on DiceGameDetails {\n        __typename\n        result\n        dividingPoint\n      }\n      ... on TargetGameDetails {\n        __typename\n      }\n      ... on MinesGameDetails {\n        __typename\n      }\n      ... on TowerGameDetails {\n        __typename\n      }\n      ... on HiloGameDetails {\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}',
-            variables: { dividingPoint: parseInt(dividingRef.current), mode: upDownRef.current, amount: parseInt(amountRef.current), clientSeed: userIdRef.current }
+            variables: {
+              dividingPoint: parseInt(dividingRef.current),
+              mode: upDownRef.current,
+              amount: parseInt(amountRef.current),
+              clientSeed: userIdRef.current
+            }
           },
           type: 'subscribe'
         })
       );
     }, 500);
-  }
-
-  
+  };
 
   // let socket;
 
@@ -126,16 +150,20 @@ const Dice = () => {
       const response = JSON.parse(event.data);
       if (response.id === '0d7d8090-9791-11ee-b9d1-0242ac120002' && response.payload) {
         username = response.payload.data.authenticate.username;
+        getbalence();
       } else if (response.id === 'b37aeb93-b24a-41c4-8ac6-c8a496d99f88' && response.payload) {
         if (response.payload.errors && response.payload.errors[0].message === 'INSUFFICIENT_FUNDS_ERROR')
           toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
         else if (response.payload.data.playDice) {
           setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.playDice }]);
-          if(counter < playNumberRef.current){
+          if (counter < playNumberRef.current) {
             autoPlay();
             counter++;
           }
-
+        }
+      } else if (response.id == 'f454cbb6-d074-470d-9aa4-835dc10904a4') {
+        if (response.payload.data.balance) {
+          setBalance(response.payload.data.balance.after);
         }
       } else {
         console.log('response =>', response.id);
@@ -151,7 +179,6 @@ const Dice = () => {
 
   return (
     <div className="w-screen">
-
       <div className="inline-flex w-full mb-5">
         <div className="flex items-center mr-[58px]">
           <div className="text-[20px]">Amount</div>
@@ -207,6 +234,15 @@ const Dice = () => {
         >
           <div className="mx-[20px]">Play</div>
         </button>
+      </div>
+
+      <div className="inline-flex w-full mb-5">
+        <div className="flex items-center mr-[20px]">
+          <div className="text-[20px]">Balance:</div>
+        </div>
+        <div className="flex items-center mr-[20px]">
+          <div className="text-[20px]">{balanceRef.current}</div>
+        </div>
       </div>
       {playData.length != 0 ? (
         <>

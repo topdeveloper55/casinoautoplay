@@ -15,8 +15,10 @@ const Hilo = () => {
   const playNumberRef = useRef(1);
   const userIdRef = useRef('');
   const amountRef = useRef(0);
-  const {user} = useAuth();
+  const { user } = useAuth();
   const userToken = user.authToken;
+  const [balance, setBalance] = useState(0);
+  const balanceRef = useRef(0);
 
   function handleChangeAmount(event) {
     setAmount(event.target.value);
@@ -63,6 +65,18 @@ const Hilo = () => {
         }, 2000);
       }
     }
+  };
+  const getbalence = async () => {
+    socketRef.current.send(
+      JSON.stringify({
+        id: 'f454cbb6-d074-470d-9aa4-835dc10904a4',
+        payload: {
+          query: 'subscription {\n  balance {\n    before\n    after\n  }\n}',
+          variables: {}
+        },
+        type: 'subscribe'
+      })
+    );
   };
 
   const autoPlay = (data) => {
@@ -117,6 +131,7 @@ const Hilo = () => {
       const response = JSON.parse(event.data);
       if (response.id === '2302f5fa-98c0-11ee-b9d1-0242ac120002' && response.payload) {
         username = response.payload.data.authenticate.username;
+        getbalence();
       } else if (response.id === '134fa1dd-86c9-4bd4-ae31-2b8d0db16d98' && response.payload) {
         if (response.payload.errors && response.payload.errors[0].message === 'INSUFFICIENT_FUNDS_ERROR')
           toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
@@ -125,7 +140,6 @@ const Hilo = () => {
           autoPlay({ playId: playId, pick: 'LowerOrSame' });
         }
       } else if (response.id === '9dafaba2-98c7-11ee-b9d1-0242ac120002' && response.payload) {
-        console.log('-------->', response.payload);
         if (response.payload.data.hiloPick.__typename === 'SinglePlayerGameBet') {
           setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.hiloPick }]);
           if (counter < playNumberRef.current) {
@@ -133,7 +147,12 @@ const Hilo = () => {
             miniPlay();
           }
         } else if (response.payload.data.hiloPick.__typename === 'SinglePlayerGameBetInProgress') {
+          console.log("response.payload.data.hiloPick.__typename------->", response.payload)
           autoPlay({ playId: playId, pick: selectArray[Math.floor(Math.random() * 2)] });
+        }
+      } else if (response.id == 'f454cbb6-d074-470d-9aa4-835dc10904a4') {
+        if (response.payload.data.balance) {
+          setBalance(response.payload.data.balance.after);
         }
       } else {
         console.log('response =>', response);
@@ -151,11 +170,11 @@ const Hilo = () => {
     playNumberRef.current = playNumber;
     userIdRef.current = user.userId;
     amountRef.current = amount;
-  }, [playNumber, amount]);
+    balanceRef.current = balance;
+  }, [playNumber, amount, balance]);
 
   return (
     <div className="w-screen">
-
       <div className="inline-flex w-full mb-5">
         <div className="flex items-center mr-[74px]">
           <div className="text-[20px]">Amount</div>
@@ -182,6 +201,15 @@ const Hilo = () => {
         >
           <div className="mx-[20px]">Play</div>
         </button>
+      </div>
+
+      <div className="inline-flex w-full mb-5">
+        <div className="flex items-center mr-[20px]">
+          <div className="text-[20px]">Balance:</div>
+        </div>
+        <div className="flex items-center mr-[20px]">
+          <div className="text-[20px]">{balanceRef.current}</div>
+        </div>
       </div>
 
       {playData.length != 0 ? (

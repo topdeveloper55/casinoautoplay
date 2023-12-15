@@ -4,24 +4,28 @@ import { toast } from 'react-toastify';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 const Tower = () => {
-  const [userId, setUserID] = useState('');
   const [amount, setAmount] = useState(0);
   const [playNumber, setPlayNumber] = useState(1);
   const [difficulty, setDifficulty] = useState('Hard');
   const [buttonColor1, setButtonColor1] = useState('bg-sky-600');
   const [buttonColor2, setButtonColor2] = useState('bg-gray-300');
   const [buttonColor3, setButtonColor3] = useState('bg-gray-300');
+  const [stepLimit, setStepLimit] = useState(0);
   const socketRef = useRef(null);
-  const {user} = useAuth();
+  const { user } = useAuth();
   const [playData, setPlayData] = useState([]);
   let username = '';
   let playId = '';
   let counter = 0;
-  let selectArray = ['HigherOrSame', 'LowerOrSame'];
   const playNumberRef = useRef(1);
   const userIdRef = useRef('');
   const amountRef = useRef(0);
   const userToken = user.authToken;
+  const [balance, setBalance] = useState(0);
+  const balanceRef = useRef(0);
+  const stepLimitRef = useRef(0);
+  const difficultyRef = useRef('Hard');
+  let step = 0;
   function handleChangeHard(status) {
     if (status === 'Hard') {
       setDifficulty('Hard');
@@ -45,6 +49,9 @@ const Tower = () => {
   }
   function handleChangePlayNumber(event) {
     setPlayNumber(parseInt(event.target.value));
+  }
+  function handleChangeStepLimit(event) {
+    setStepLimit(parseInt(event.target.value));
   }
   const handlePlay = async () => {
     if (amount === 0) {
@@ -88,6 +95,7 @@ const Tower = () => {
   };
 
   const autoPlay = (data) => {
+    console.log('step-------->', step);
     socketRef.current.send(
       JSON.stringify({
         id: '9dafaba2-98c7-11ee-b9d1-0242ac120002',
@@ -99,9 +107,11 @@ const Tower = () => {
         type: 'subscribe'
       })
     );
+    step++;
   };
 
   const miniPlay = () => {
+    step = 0;
     setTimeout(() => {
       socketRef.current.send(
         JSON.stringify({
@@ -109,12 +119,37 @@ const Tower = () => {
           payload: {
             query:
               'mutation ($amount: Float!, $autoCashout: Boolean, $clientSeed: String!, $difficulty: TowerDifficulty!, $tilesToUncover: [Int!]) {\n  playTower(\n    amount: $amount\n    autoCashout: $autoCashout\n    clientSeed: $clientSeed\n    difficulty: $difficulty\n    tilesToUncover: $tilesToUncover\n  ) {\n    __typename\n    ... on SinglePlayerGameBet {\n      id\n      isWin\n      multiplier\n      profit\n      amount\n      details {\n        ... on TowerGameDetails {\n          __typename\n          difficulty\n          levels\n          levelsCount\n          uncovered\n        }\n        ... on MinesGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    ... on SinglePlayerGameBetInProgress {\n      _id\n      amount\n      details {\n        ... on TowerGameDetails {\n          __typename\n          difficulty\n          levels\n          levelsCount\n          uncovered\n        }\n        ... on MinesGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n  }\n}',
-            variables: { difficulty: difficulty, amount: parseInt(amountRef.current), clientSeed: userIdRef.current }
+            variables: { difficulty: difficultyRef.current, amount: parseInt(amountRef.current), clientSeed: userIdRef.current }
           },
           type: 'subscribe'
         })
       );
     }, 500);
+  };
+  const getbalence = async () => {
+    socketRef.current.send(
+      JSON.stringify({
+        id: 'f454cbb6-d074-470d-9aa4-835dc10904a4',
+        payload: {
+          query: 'subscription {\n  balance {\n    before\n    after\n  }\n}',
+          variables: {}
+        },
+        type: 'subscribe'
+      })
+    );
+  };
+  const withdraw = (data) => {
+    socketRef.current.send(
+      JSON.stringify({
+        id: '553d7226-9b85-11ee-8c90-0242ac120002',
+        payload: {
+          query:
+            'mutation ($_id: ID!) {\n  towerCashout(_id: $_id) {\n    id\n    isWin\n    multiplier\n    profit\n    amount\n    details {\n      ... on TowerGameDetails {\n        __typename\n        difficulty\n        levels\n        levelsCount\n        uncovered\n      }\n      ... on MinesGameDetails {\n        __typename\n      }\n      ... on DiceGameDetails {\n        __typename\n      }\n      ... on TargetGameDetails {\n        __typename\n      }\n      ... on HiloGameDetails {\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}',
+          variables: { _id: data.playId }
+        },
+        type: 'subscribe'
+      })
+    );
   };
 
   // let socket;
@@ -132,6 +167,7 @@ const Tower = () => {
       const response = JSON.parse(event.data);
       if (response.id === '2302f5fa-98c0-11ee-b9d1-0242ac120002' && response.payload) {
         username = response.payload.data.authenticate.username;
+        getbalence();
       } else if (response.id === '134fa1dd-86c9-4bd4-ae31-2b8d0db16d98' && response.payload) {
         if (response.payload.errors && response.payload.errors[0].message === 'INSUFFICIENT_FUNDS_ERROR')
           toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
@@ -149,8 +185,19 @@ const Tower = () => {
           }
         } else if (response.payload.data.towerSelectTiles.__typename === 'SinglePlayerGameBetInProgress') {
           let array = [0, 1, 2, 3];
-          autoPlay({ playId: playId, tilesToUncover: [array[Math.floor(Math.random() * array.length)]] });
+          if (step < stepLimitRef.current) {
+            autoPlay({ playId: playId, tilesToUncover: [array[Math.floor(Math.random() * array.length)]] });
+          } else {
+            withdraw({ playId: playId });
+          }
         }
+      } else if (response.id == 'f454cbb6-d074-470d-9aa4-835dc10904a4') {
+        if (response.payload.data.balance) {
+          setBalance(response.payload.data.balance.after);
+        }
+      } else if (response.id == '553d7226-9b85-11ee-8c90-0242ac120002' && response.payload) {
+        setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.towerCashout }]);
+        miniPlay();
       } else {
       }
     };
@@ -166,11 +213,13 @@ const Tower = () => {
     playNumberRef.current = playNumber;
     userIdRef.current = user.userId;
     amountRef.current = amount;
-  }, [playNumber, amount]);
+    balanceRef.current = balance;
+    stepLimitRef.current = stepLimit;
+    difficultyRef.current = difficulty;
+  }, [playNumber, amount, balance, stepLimit, difficulty]);
 
   return (
     <div className="w-screen">
-
       <div className="inline-flex w-full mb-5">
         <div className="flex items-center mr-[58px]">
           <div className="text-[20px]">Amount</div>
@@ -178,6 +227,16 @@ const Tower = () => {
         <input
           className="items-center text-sm leading-6 text-black rounded-md ring-1 shadow-sm py-1.5 pl-2 pr-3 hover:ring-white bg-gray-300 dark:highlight-white/5 dark:hover:bg-gray-100"
           onChange={handleChangeAmount}
+        ></input>
+      </div>
+
+      <div className="inline-flex w-full mb-5">
+        <div className="flex items-center mr-[58px]">
+          <div className="text-[20px]">Step Limit</div>
+        </div>
+        <input
+          className="items-center text-sm leading-6 text-black rounded-md ring-1 shadow-sm py-1.5 pl-2 pr-3 hover:ring-white bg-gray-300 dark:highlight-white/5 dark:hover:bg-gray-100"
+          onChange={handleChangeStepLimit}
         ></input>
       </div>
 
@@ -224,6 +283,14 @@ const Tower = () => {
         >
           <div className="mx-[20px]">Play</div>
         </button>
+      </div>
+      <div className="inline-flex w-full mb-5">
+        <div className="flex items-center mr-[20px]">
+          <div className="text-[20px]">Balance:</div>
+        </div>
+        <div className="flex items-center mr-[20px]">
+          <div className="text-[20px]">{balanceRef.current}</div>
+        </div>
       </div>
 
       {playData.length != 0 ? (

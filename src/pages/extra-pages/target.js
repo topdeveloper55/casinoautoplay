@@ -15,14 +15,17 @@ const Target = () => {
   const amountRef = useRef(0);
   const userIdRef = useRef('');
   const playNumberRef = useRef(0);
-  const {user} = useAuth();
+  const { user } = useAuth();
   const userToken = user.authToken;
+  const [balance, setBalance] = useState(0);
+  const balanceRef = useRef(0);
   useEffect(() => {
     userIdRef.current = user.userId;
     amountRef.current = amount;
     targetRef.current = target;
     playNumberRef.current = playNumber;
-  }, [playNumber, amount, target]);
+    balanceRef.current = balance;
+  }, [playNumber, amount, target, balance]);
 
   function handleChangeAmount(event) {
     setAmount(event.target.value);
@@ -67,7 +70,11 @@ const Target = () => {
               payload: {
                 query:
                   'mutation ($amount: Float!, $clientSeed: String!, $targetMultiplier: Float!) {\n  playTarget(\n    amount: $amount\n    clientSeed: $clientSeed\n    targetMultiplier: $targetMultiplier\n  ) {\n    id\n    isWin\n    profit\n    details {\n      ... on DiceGameDetails {\n        __typename\n      }\n      ... on TargetGameDetails {\n        __typename\n        result\n      }\n      ... on MinesGameDetails {\n        __typename\n      }\n      ... on TowerGameDetails {\n        __typename\n      }\n      ... on HiloGameDetails {\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}',
-                variables: { targetMultiplier: parseInt(targetRef.current), amount: parseInt(amountRef.current), clientSeed: userIdRef.current }
+                variables: {
+                  targetMultiplier: parseInt(targetRef.current),
+                  amount: parseInt(amountRef.current),
+                  clientSeed: userIdRef.current
+                }
               },
               type: 'subscribe'
             })
@@ -76,7 +83,6 @@ const Target = () => {
       }
     }
   };
-
 
   const autoPlay = () => {
     setTimeout(() => {
@@ -92,7 +98,20 @@ const Target = () => {
         })
       );
     }, 500);
-  }
+  };
+
+  const getbalence = async () => {
+    socketRef.current.send(
+      JSON.stringify({
+        id: 'f454cbb6-d074-470d-9aa4-835dc10904a4',
+        payload: {
+          query: 'subscription {\n  balance {\n    before\n    after\n  }\n}',
+          variables: {}
+        },
+        type: 'subscribe'
+      })
+    );
+  };
 
   // let socket;
 
@@ -109,16 +128,20 @@ const Target = () => {
       const response = JSON.parse(event.data);
       if (response.id === '0d7d8090-9791-11ee-b9d1-0242ac120002' && response.payload) {
         username = response.payload.data.authenticate.username;
+        getbalence();
       } else if (response.id === 'b37aeb93-b24a-41c4-8ac6-c8a496d99f88' && response.payload) {
         if (response.payload.errors && response.payload.errors[0].message === 'INSUFFICIENT_FUNDS_ERROR')
           toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
         else if (response.payload.data.playTarget) {
-          console.log("response---->", response.payload.data)
           setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.playTarget }]);
-          if(counter < playNumberRef.current){
+          if (counter < playNumberRef.current) {
             autoPlay();
             counter++;
           }
+        }
+      } else if (response.id == 'f454cbb6-d074-470d-9aa4-835dc10904a4') {
+        if (response.payload.data.balance) {
+          setBalance(response.payload.data.balance.after);
         }
       } else {
         console.log('response =>', response);
@@ -134,7 +157,6 @@ const Target = () => {
 
   return (
     <div className="w-screen">
-
       <div className="inline-flex w-full mb-5">
         <div className="flex items-center mr-[58px]">
           <div className="text-[20px]">Amount</div>
@@ -171,6 +193,14 @@ const Target = () => {
         >
           <div className="mx-[20px]">Play</div>
         </button>
+      </div>
+      <div className="inline-flex w-full mb-5">
+        <div className="flex items-center mr-[20px]">
+          <div className="text-[20px]">Balance:</div>
+        </div>
+        <div className="flex items-center mr-[20px]">
+          <div className="text-[20px]">{balanceRef.current}</div>
+        </div>
       </div>
       {playData.length != 0 ? (
         <>
