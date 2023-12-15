@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
+import useAuth from 'hooks/useAuth';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 let socket = null;
 const Mines = () => {
-  const [userId, setUserID] = useState('');
   const [amount, setAmount] = useState(0);
   const [mines, setMines] = useState(0);
   const [playNumber, setPlayNumber] = useState(1);
-  const [userToken, setUserToken] = useState('');
   const [playData, setPlayData] = useState([]);
   const userTokenRef = useRef('');
   const playNumberRef = useRef(1);
@@ -21,10 +20,8 @@ const Mines = () => {
   let username = '';
   let playCounter = 0;
   let counter = 1;
-  let user = '';
-  function handleChangeUserId(event) {
-    setUserID(event.target.value);
-  }
+  const {user} = useAuth();
+  const userToken = user.authToken;
   function handleChangeAmount(event) {
     setAmount(event.target.value);
   }
@@ -53,9 +50,7 @@ const Mines = () => {
     return randomNumbers;
   };
   const handlePlay = async () => {
-    if (userId === '') {
-      toast('Please input UserID', { hideProgressBar: false, autoClose: 2000, type: 'error' });
-    } else if (amount === 0) {
+    if (amount === 0) {
       toast('Please input Amount', { hideProgressBar: false, autoClose: 2000, type: 'error' });
     } else if (mines === 0) {
       toast('Please input Dividing', { hideProgressBar: false, autoClose: 2000, type: 'error' });
@@ -63,7 +58,6 @@ const Mines = () => {
       toast('Please input userToken', { hideProgressBar: false, autoClose: 2000, type: 'error' });
     } else {
       counter = 0;
-      user = userId;
       if (socket) {
         setTimeout(() => {
           socket.send(
@@ -88,7 +82,7 @@ const Mines = () => {
               payload: {
                 query:
                   'mutation ($amount: Float!, $autoCashout: Boolean, $clientSeed: String!, $mines: Int!, $tilesToUncover: [Int!]) {\n  playMines(\n    amount: $amount\n    autoCashout: $autoCashout\n    clientSeed: $clientSeed\n    mines: $mines\n    tilesToUncover: $tilesToUncover\n  ) {\n    __typename\n    ... on SinglePlayerGameBet {\n      id\n      isWin\n      multiplier\n      profit\n      amount\n      details {\n        ... on MinesGameDetails {\n          __typename\n          mines\n          uncovered\n          minesCount\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    ... on SinglePlayerGameBetInProgress {\n      _id\n      amount\n      details {\n        ... on MinesGameDetails {\n          __typename\n          mines\n          uncovered\n          minesCount\n        }\n        ... on TowerGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n  }\n}',
-                variables: { mines: parseInt(mines), amount: parseInt(amount), clientSeed: userId }
+                variables: { mines: parseInt(mines), amount: parseInt(amount), clientSeed: userIdRef.current }
               },
               type: 'subscribe'
             })
@@ -97,10 +91,6 @@ const Mines = () => {
       }
     }
   };
-
-  function handleChangeUserToken(event) {
-    setUserToken(event.target.value);
-  }
 
   const autoPlay = (data) => {
     socket.send(
@@ -123,8 +113,6 @@ const Mines = () => {
     return string;
   };
   const miniPlay = () => {
-    console.log('----------> useeffect', counter);
-    console.log('userId---->', userId);
     miningCounter = 0;
     socket.send(
       JSON.stringify({
@@ -184,7 +172,6 @@ const Mines = () => {
             playCounter++;
             setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
             if (counter < playNumberRef.current) {
-              console.log('usertoken 1111->', userToken);
               miniPlay();
               counter++;
             }
@@ -209,32 +196,13 @@ const Mines = () => {
   useEffect(() => {
     userTokenRef.current = userToken;
     playNumberRef.current = playNumber;
-    userIdRef.current = userId;
+    userIdRef.current = user.userId;
     amountRef.current = amount;
     minesRef.current = mines;
-  }, [userToken, playNumber, mines, amount, userId]);
+  }, [userToken, playNumber, mines, amount]);
 
   return (
     <div className="w-screen">
-      <div className="inline-flex mb-3">
-        <div className="flex items-center justify-center mr-[70px]">
-          <div className="text-[20px]">UserId</div>
-        </div>
-        <input
-          className="items-center text-sm leading-6 text-black rounded-md ring-1 shadow-sm py-1.5 pl-2 pr-3 hover:ring-white bg-gray-300 dark:highlight-white/5 dark:hover:bg-gray-100"
-          onChange={handleChangeUserId}
-        ></input>
-      </div>
-
-      <div className="inline-flex w-full mb-3">
-        <div className="flex items-center justify-center mr-[32px]">
-          <div className="text-[20px]">UserToken</div>
-        </div>
-        <input
-          className="items-center text-sm leading-6 text-black rounded-md ring-1 shadow-sm py-1.5 pl-2 pr-3 hover:ring-white bg-gray-300 dark:highlight-white/5 dark:hover:bg-gray-100"
-          onChange={handleChangeUserToken}
-        ></input>
-      </div>
 
       <div className="inline-flex w-full mb-5">
         <div className="flex items-center mr-[58px]">

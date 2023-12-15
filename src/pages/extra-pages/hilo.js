@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
+import useAuth from 'hooks/useAuth';
 import { toast } from 'react-toastify';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 const Hilo = () => {
-  const [userId, setUserID] = useState('');
   const [amount, setAmount] = useState(0);
-  const [buttonColor1, setButtonColor1] = useState('bg-sky-600');
-  const [buttonColor2, setButtonColor2] = useState('bg-gray-300');
   const [playNumber, setPlayNumber] = useState(1);
-  const [userToken, setUserToken] = useState('');
   const socketRef = useRef(null);
   const [playData, setPlayData] = useState([]);
   let username = '';
@@ -18,10 +15,9 @@ const Hilo = () => {
   const playNumberRef = useRef(1);
   const userIdRef = useRef('');
   const amountRef = useRef(0);
+  const {user} = useAuth();
+  const userToken = user.authToken;
 
-  function handleChangeUserId(event) {
-    setUserID(event.target.value);
-  }
   function handleChangeAmount(event) {
     setAmount(event.target.value);
   }
@@ -29,9 +25,7 @@ const Hilo = () => {
     setPlayNumber(parseInt(event.target.value));
   }
   const handlePlay = async () => {
-    if (userId === '') {
-      toast('Please input UserID', { hideProgressBar: false, autoClose: 2000, type: 'error' });
-    } else if (amount === 0) {
+    if (amount === 0) {
       toast('Please input Amount', { hideProgressBar: false, autoClose: 2000, type: 'error' });
     } else if (userToken === '') {
       toast('Please input userToken', { hideProgressBar: false, autoClose: 2000, type: 'error' });
@@ -61,7 +55,7 @@ const Hilo = () => {
               payload: {
                 query:
                   'mutation ($amount: Float!, $card: String!, $clientSeed: String!) {\n  playHilo(amount: $amount, card: $card, clientSeed: $clientSeed) {\n    _id\n    amount\n    details {\n      ... on HiloGameDetails {\n        __typename\n        cards\n        picks\n      }\n      ... on MinesGameDetails {\n        __typename\n      }\n      ... on DiceGameDetails {\n        __typename\n      }\n      ... on TargetGameDetails {\n        __typename\n      }\n      ... on TowerGameDetails {\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}',
-                variables: { card: '♦K', amount: parseInt(amount), clientSeed: userId }
+                variables: { card: '♦K', amount: parseInt(amount), clientSeed: userIdRef.current }
               },
               type: 'subscribe'
             })
@@ -71,11 +65,7 @@ const Hilo = () => {
     }
   };
 
-  function handleChangeUserToken(event) {
-    setUserToken(event.target.value);
-  }
   const autoPlay = (data) => {
-    console.log('data---->', data._id);
     socketRef.current.send(
       JSON.stringify({
         id: '9dafaba2-98c7-11ee-b9d1-0242ac120002',
@@ -159,34 +149,15 @@ const Hilo = () => {
 
   useEffect(() => {
     playNumberRef.current = playNumber;
-    userIdRef.current = userId;
+    userIdRef.current = user.userId;
     amountRef.current = amount;
-  }, [playNumber, amount, userId]);
+  }, [playNumber, amount]);
 
   return (
     <div className="w-screen">
-      <div className="inline-flex mb-3">
-        <div className="flex items-center justify-center mr-[70px]">
-          <div className="text-[20px]">UserId</div>
-        </div>
-        <input
-          className="items-center text-sm leading-6 text-black rounded-md ring-1 shadow-sm py-1.5 pl-2 pr-3 hover:ring-white bg-gray-300 dark:highlight-white/5 dark:hover:bg-gray-100"
-          onChange={handleChangeUserId}
-        ></input>
-      </div>
-
-      <div className="inline-flex w-full mb-3">
-        <div className="flex items-center justify-center mr-[32px]">
-          <div className="text-[20px]">UserToken</div>
-        </div>
-        <input
-          className="items-center text-sm leading-6 text-black rounded-md ring-1 shadow-sm py-1.5 pl-2 pr-3 hover:ring-white bg-gray-300 dark:highlight-white/5 dark:hover:bg-gray-100"
-          onChange={handleChangeUserToken}
-        ></input>
-      </div>
 
       <div className="inline-flex w-full mb-5">
-        <div className="flex items-center mr-[58px]">
+        <div className="flex items-center mr-[74px]">
           <div className="text-[20px]">Amount</div>
         </div>
         <input

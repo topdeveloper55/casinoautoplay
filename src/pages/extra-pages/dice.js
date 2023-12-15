@@ -1,17 +1,16 @@
+import useAuth from 'hooks/useAuth';
 import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { v4 as uuidv4 } from 'uuid';
 const Dice = () => {
-  const [userId, setUserID] = useState('');
   const [amount, setAmount] = useState(0);
   const [upDown, setUpDown] = useState('RollUnder');
   const [buttonColor1, setButtonColor1] = useState('bg-sky-600');
   const [buttonColor2, setButtonColor2] = useState('bg-gray-300');
   const [dividing, setDividingPoint] = useState(0);
   const [playNumber, setPlayNumber] = useState(1);
-  const [userToken, setUserToken] = useState('');
   const socketRef = useRef(null);
   const [playData, setPlayData] = useState([]);
   const playNumberRef = useRef(1);
@@ -19,20 +18,18 @@ const Dice = () => {
   const amountRef = useRef(0);
   const dividingRef = useRef(0);
   const upDownRef = useRef('RollUnder');
-
+  const {user} = useAuth();
+  const userToken = user.authToken;
   useEffect(() => {
     playNumberRef.current = playNumber;
-    userIdRef.current = userId;
+    userIdRef.current = user.userId;
     amountRef.current = amount;
     dividingRef.current = dividing;
     upDownRef.current = upDown;
-  }, [playNumber, amount, userId, dividing, upDown]);
+  }, [playNumber, amount, dividing, upDown]);
 
   let username = '';
   let counter = 0;
-  function handleChangeUserId(event) {
-    setUserID(event.target.value);
-  }
   function handleChangeAmount(event) {
     setAmount(event.target.value);
   }
@@ -54,9 +51,7 @@ const Dice = () => {
     }
   }
   const handlePlay = async () => {
-    if (userId === '') {
-      toast('Please input UserID', { hideProgressBar: false, autoClose: 2000, type: 'error' });
-    } else if (amount === 0) {
+    if (amount === 0) {
       toast('Please input Amount', { hideProgressBar: false, autoClose: 2000, type: 'error' });
     } else if (dividing === 0) {
       toast('Please input Dividing', { hideProgressBar: false, autoClose: 2000, type: 'error' });
@@ -98,9 +93,6 @@ const Dice = () => {
     }
   };
 
-  function handleChangeUserToken(event) {
-    setUserToken(event.target.value);
-  }
   const autoPlay = () => {
     setTimeout(() => {
       socketRef.current.send(
@@ -139,9 +131,11 @@ const Dice = () => {
           toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
         else if (response.payload.data.playDice) {
           setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.playDice }]);
-          if(counter < playNumberRef.current)
-          autoPlay();
-          counter++;
+          if(counter < playNumberRef.current){
+            autoPlay();
+            counter++;
+          }
+
         }
       } else {
         console.log('response =>', response.id);
@@ -157,25 +151,6 @@ const Dice = () => {
 
   return (
     <div className="w-screen">
-      <div className="inline-flex mb-3">
-        <div className="flex items-center justify-center mr-[70px]">
-          <div className="text-[20px]">UserId</div>
-        </div>
-        <input
-          className="items-center text-sm leading-6 text-black rounded-md ring-1 shadow-sm py-1.5 pl-2 pr-3 hover:ring-white bg-gray-300 dark:highlight-white/5 dark:hover:bg-gray-100"
-          onChange={handleChangeUserId}
-        ></input>
-      </div>
-
-      <div className="inline-flex w-full mb-3">
-        <div className="flex items-center justify-center mr-[32px]">
-          <div className="text-[20px]">UserToken</div>
-        </div>
-        <input
-          className="items-center text-sm leading-6 text-black rounded-md ring-1 shadow-sm py-1.5 pl-2 pr-3 hover:ring-white bg-gray-300 dark:highlight-white/5 dark:hover:bg-gray-100"
-          onChange={handleChangeUserToken}
-        ></input>
-      </div>
 
       <div className="inline-flex w-full mb-5">
         <div className="flex items-center mr-[58px]">

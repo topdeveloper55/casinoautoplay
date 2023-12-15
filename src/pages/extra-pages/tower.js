@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import useAuth from 'hooks/useAuth';
 import { toast } from 'react-toastify';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -6,12 +7,12 @@ const Tower = () => {
   const [userId, setUserID] = useState('');
   const [amount, setAmount] = useState(0);
   const [playNumber, setPlayNumber] = useState(1);
-  const [userToken, setUserToken] = useState('');
   const [difficulty, setDifficulty] = useState('Hard');
   const [buttonColor1, setButtonColor1] = useState('bg-sky-600');
   const [buttonColor2, setButtonColor2] = useState('bg-gray-300');
   const [buttonColor3, setButtonColor3] = useState('bg-gray-300');
   const socketRef = useRef(null);
+  const {user} = useAuth();
   const [playData, setPlayData] = useState([]);
   let username = '';
   let playId = '';
@@ -20,6 +21,7 @@ const Tower = () => {
   const playNumberRef = useRef(1);
   const userIdRef = useRef('');
   const amountRef = useRef(0);
+  const userToken = user.authToken;
   function handleChangeHard(status) {
     if (status === 'Hard') {
       setDifficulty('Hard');
@@ -38,9 +40,6 @@ const Tower = () => {
       setButtonColor2('bg-gray-300');
     }
   }
-  function handleChangeUserId(event) {
-    setUserID(event.target.value);
-  }
   function handleChangeAmount(event) {
     setAmount(event.target.value);
   }
@@ -48,9 +47,7 @@ const Tower = () => {
     setPlayNumber(parseInt(event.target.value));
   }
   const handlePlay = async () => {
-    if (userId === '') {
-      toast('Please input UserID', { hideProgressBar: false, autoClose: 2000, type: 'error' });
-    } else if (amount === 0) {
+    if (amount === 0) {
       toast('Please input Amount', { hideProgressBar: false, autoClose: 2000, type: 'error' });
     } else if (userToken === '') {
       toast('Please input userToken', { hideProgressBar: false, autoClose: 2000, type: 'error' });
@@ -80,7 +77,7 @@ const Tower = () => {
               payload: {
                 query:
                   'mutation ($amount: Float!, $autoCashout: Boolean, $clientSeed: String!, $difficulty: TowerDifficulty!, $tilesToUncover: [Int!]) {\n  playTower(\n    amount: $amount\n    autoCashout: $autoCashout\n    clientSeed: $clientSeed\n    difficulty: $difficulty\n    tilesToUncover: $tilesToUncover\n  ) {\n    __typename\n    ... on SinglePlayerGameBet {\n      id\n      isWin\n      multiplier\n      profit\n      amount\n      details {\n        ... on TowerGameDetails {\n          __typename\n          difficulty\n          levels\n          levelsCount\n          uncovered\n        }\n        ... on MinesGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    ... on SinglePlayerGameBetInProgress {\n      _id\n      amount\n      details {\n        ... on TowerGameDetails {\n          __typename\n          difficulty\n          levels\n          levelsCount\n          uncovered\n        }\n        ... on MinesGameDetails {\n          __typename\n        }\n        ... on DiceGameDetails {\n          __typename\n        }\n        ... on TargetGameDetails {\n          __typename\n        }\n        ... on HiloGameDetails {\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n  }\n}',
-                variables: { difficulty: difficulty, amount: parseInt(amount), clientSeed: userId }
+                variables: { difficulty: difficulty, amount: parseInt(amount), clientSeed: userIdRef.current }
               },
               type: 'subscribe'
             })
@@ -90,9 +87,6 @@ const Tower = () => {
     }
   };
 
-  function handleChangeUserToken(event) {
-    setUserToken(event.target.value);
-  }
   const autoPlay = (data) => {
     socketRef.current.send(
       JSON.stringify({
@@ -147,10 +141,8 @@ const Tower = () => {
           autoPlay({ playId: playId, tilesToUncover: [array[Math.floor(Math.random() * array.length)]] });
         }
       } else if (response.id === '9dafaba2-98c7-11ee-b9d1-0242ac120002' && response.payload) {
-        console.log('-------->', response.payload);
         if (response.payload.data.towerSelectTiles.__typename === 'SinglePlayerGameBet') {
           setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.towerSelectTiles }]);
-          console.log("counter--->", counter, "playNumber----->", playNumberRef.current)
           if (counter < playNumberRef.current) {
             counter++;
             miniPlay();
@@ -172,31 +164,12 @@ const Tower = () => {
 
   useEffect(() => {
     playNumberRef.current = playNumber;
-    userIdRef.current = userId;
+    userIdRef.current = user.userId;
     amountRef.current = amount;
-  }, [playNumber, amount, userId]);
+  }, [playNumber, amount]);
 
   return (
     <div className="w-screen">
-      <div className="inline-flex mb-3">
-        <div className="flex items-center justify-center mr-[70px]">
-          <div className="text-[20px]">UserId</div>
-        </div>
-        <input
-          className="items-center text-sm leading-6 text-black rounded-md ring-1 shadow-sm py-1.5 pl-2 pr-3 hover:ring-white bg-gray-300 dark:highlight-white/5 dark:hover:bg-gray-100"
-          onChange={handleChangeUserId}
-        ></input>
-      </div>
-
-      <div className="inline-flex w-full mb-3">
-        <div className="flex items-center justify-center mr-[32px]">
-          <div className="text-[20px]">UserToken</div>
-        </div>
-        <input
-          className="items-center text-sm leading-6 text-black rounded-md ring-1 shadow-sm py-1.5 pl-2 pr-3 hover:ring-white bg-gray-300 dark:highlight-white/5 dark:hover:bg-gray-100"
-          onChange={handleChangeUserToken}
-        ></input>
-      </div>
 
       <div className="inline-flex w-full mb-5">
         <div className="flex items-center mr-[58px]">

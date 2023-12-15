@@ -66,9 +66,10 @@ const AuthRegister = () => {
           firstname: '',
           lastname: '',
           email: '',
-          company: '',
+          userId: '',
           password: '',
-          submit: null
+          submit: null,
+          authToken: '',
         }}
         validationSchema={Yup.object().shape({
           firstname: Yup.string().max(255).required('First Name is required'),
@@ -78,7 +79,7 @@ const AuthRegister = () => {
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
-            await register(values.email, values.password, values.firstname, values.lastname);
+            await register(values.email, values.password, values.firstname, values.lastname, values.userId, values.authToken);
             if (scriptedRef.current) {
               setStatus({ success: true });
               setSubmitting(false);
@@ -167,21 +168,42 @@ const AuthRegister = () => {
               </Grid>
               <Grid item xs={12}>
                 <Stack spacing={1}>
-                  <InputLabel htmlFor="company-signup">Company</InputLabel>
+                  <InputLabel htmlFor="company-signup">userId</InputLabel>
                   <OutlinedInput
                     fullWidth
-                    error={Boolean(touched.company && errors.company)}
+                    error={Boolean(touched.userId && errors.userId)}
                     id="company-signup"
-                    value={values.company}
-                    name="company"
+                    value={values.userId}
+                    name="userId"
                     onBlur={handleBlur}
                     onChange={handleChange}
-                    placeholder="Demo Inc."
+                    placeholder=""
                     inputProps={{}}
                   />
-                  {touched.company && errors.company && (
+                  {touched.userId && errors.userId && (
                     <FormHelperText error id="helper-text-company-signup">
-                      {errors.company}
+                      {errors.userId}
+                    </FormHelperText>
+                  )}
+                </Stack>
+              </Grid>
+              <Grid item xs={12}>
+                <Stack spacing={1}>
+                  <InputLabel htmlFor="company-signup">authToken</InputLabel>
+                  <OutlinedInput
+                    fullWidth
+                    error={Boolean(touched.authToken && errors.authToken)}
+                    id="company-signup"
+                    value={values.authToken}
+                    name="authToken"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    placeholder=""
+                    inputProps={{}}
+                  />
+                  {touched.authToken && errors.authToken && (
+                    <FormHelperText error id="helper-text-company-signup">
+                      {errors.authToken}
                     </FormHelperText>
                   )}
                 </Stack>
@@ -198,7 +220,7 @@ const AuthRegister = () => {
                     name="email"
                     onBlur={handleBlur}
                     onChange={handleChange}
-                    placeholder="demo@company.com"
+                    placeholder=""
                     inputProps={{}}
                   />
                   {touched.email && errors.email && (

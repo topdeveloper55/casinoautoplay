@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import useAuth from 'hooks/useAuth';
 import { toast } from 'react-toastify';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 const Target = () => {
-  const [userId, setUserID] = useState('');
   const [amount, setAmount] = useState(0);
   const [target, setTarget] = useState(0);
   const [playNumber, setPlayNumber] = useState(1);
-  const [userToken, setUserToken] = useState('');
   const socketRef = useRef(null);
   const [playData, setPlayData] = useState([]);
   let username = '';
@@ -16,15 +15,15 @@ const Target = () => {
   const amountRef = useRef(0);
   const userIdRef = useRef('');
   const playNumberRef = useRef(0);
+  const {user} = useAuth();
+  const userToken = user.authToken;
   useEffect(() => {
-    userIdRef.current = userId;
+    userIdRef.current = user.userId;
     amountRef.current = amount;
     targetRef.current = target;
     playNumberRef.current = playNumber;
-  }, [playNumber, amount, userId, target]);
-  function handleChangeUserId(event) {
-    setUserID(event.target.value);
-  }
+  }, [playNumber, amount, target]);
+
   function handleChangeAmount(event) {
     setAmount(event.target.value);
   }
@@ -36,9 +35,7 @@ const Target = () => {
   }
 
   const handlePlay = async () => {
-    if (userId === '') {
-      toast('Please input UserID', { hideProgressBar: false, autoClose: 2000, type: 'error' });
-    } else if (amount === 0) {
+    if (amount === 0) {
       toast('Please input Amount', { hideProgressBar: false, autoClose: 2000, type: 'error' });
     } else if (target === 0) {
       toast('Please input Dividing', { hideProgressBar: false, autoClose: 2000, type: 'error' });
@@ -80,9 +77,6 @@ const Target = () => {
     }
   };
 
-  function handleChangeUserToken(event) {
-    setUserToken(event.target.value);
-  }
 
   const autoPlay = () => {
     setTimeout(() => {
@@ -119,6 +113,7 @@ const Target = () => {
         if (response.payload.errors && response.payload.errors[0].message === 'INSUFFICIENT_FUNDS_ERROR')
           toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
         else if (response.payload.data.playTarget) {
+          console.log("response---->", response.payload.data)
           setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.playTarget }]);
           if(counter < playNumberRef.current){
             autoPlay();
@@ -126,7 +121,7 @@ const Target = () => {
           }
         }
       } else {
-        console.log('response =>', response.id);
+        console.log('response =>', response);
       }
     };
     return () => {
@@ -139,25 +134,6 @@ const Target = () => {
 
   return (
     <div className="w-screen">
-      <div className="inline-flex mb-3">
-        <div className="flex items-center justify-center mr-[70px]">
-          <div className="text-[20px]">UserId</div>
-        </div>
-        <input
-          className="items-center text-sm leading-6 text-black rounded-md ring-1 shadow-sm py-1.5 pl-2 pr-3 hover:ring-white bg-gray-300 dark:highlight-white/5 dark:hover:bg-gray-100"
-          onChange={handleChangeUserId}
-        ></input>
-      </div>
-
-      <div className="inline-flex w-full mb-3">
-        <div className="flex items-center justify-center mr-[32px]">
-          <div className="text-[20px]">UserToken</div>
-        </div>
-        <input
-          className="items-center text-sm leading-6 text-black rounded-md ring-1 shadow-sm py-1.5 pl-2 pr-3 hover:ring-white bg-gray-300 dark:highlight-white/5 dark:hover:bg-gray-100"
-          onChange={handleChangeUserToken}
-        ></input>
-      </div>
 
       <div className="inline-flex w-full mb-5">
         <div className="flex items-center mr-[58px]">

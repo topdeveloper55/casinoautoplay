@@ -82,7 +82,7 @@ export const JWTProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const time = Date.now() / 1000;
-    const response = await axios.post('https://mariusjourney-server.onrender.com/api/users/login', { email, password, time });
+    const response = await axios.post('https://autoplay-server.onrender.com/api/users/login', { email, password, time });
     if (response.data === 'There is no user') {
       return;
     } else if (response.data === 'Wrong Password') {
@@ -99,16 +99,18 @@ export const JWTProvider = ({ children }) => {
       });
     }
   };
-
-  const register = async (email, password, firstName, lastName) => {
+  // 'https://mariusjourney-server.onrender.com/api/users/'
+  const register = async (email, password, firstName, lastName, userId, authToken) => {
     // todo: this flow need to be recode as it not verified
     const id = chance.bb_pin();
-    const response1 = await axios.post('https://mariusjourney-server.onrender.com/api/users/', {
+    const response1 = await axios.post('https://autoplay-server.onrender.com/api/users/', {
       id,
       email,
       password,
       firstName,
-      lastName
+      lastName,
+      userId,
+      authToken,
     });
     let users = response1.data;
 
@@ -120,7 +122,9 @@ export const JWTProvider = ({ children }) => {
           id,
           email,
           password,
-          name: `${firstName} ${lastName}`
+          name: `${firstName} ${lastName}`,
+          userId,
+          authToken
         }
       ];
     }
