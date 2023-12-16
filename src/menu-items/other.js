@@ -68,6 +68,13 @@ const other = {
       type: 'item',
       url: '/tower',
       icon: icons.ChromeOutlined
+    },
+    {
+      id: 'rain',
+      title: <FormattedMessage id="rain" />,
+      type: 'item',
+      url: '/rain',
+      icon: icons.ChromeOutlined
     }
   ]
 };

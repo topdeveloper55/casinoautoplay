@@ -18,6 +18,7 @@ const Target = Loadable(lazy(() => import('pages/extra-pages/target')));
 const Mines = Loadable(lazy(() => import('pages/extra-pages/mines')));
 const Hilo = Loadable(lazy(() => import('pages/extra-pages/hilo')));
 const Tower = Loadable(lazy(() => import('pages/extra-pages/tower')));
+const Rain = Loadable(lazy(() => import('pages/extra-pages/rain')));
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
@@ -50,7 +51,11 @@ const MainRoutes = {
         {
           path: 'Tower',
           element: <Tower />
-        }
+        },
+        {
+          path: 'Rain',
+          element: <Rain />
+        },
       ]
     },
     {
