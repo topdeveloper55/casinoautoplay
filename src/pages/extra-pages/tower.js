@@ -151,10 +151,14 @@ const Tower = () => {
       })
     );
   };
+  const stop = () => {
+    socketRef.current.close();
+  };
 
   // let socket;
 
   useEffect(() => {
+    const connectWebSocket = () => {
     socketRef.current = new WebSocket('wss://bch.games/api/graphql', 'graphql-transport-ws');
 
     socketRef.current.onopen = () => {
@@ -200,6 +204,14 @@ const Tower = () => {
         miniPlay();
       } else {
       }
+    };
+  };
+    connectWebSocket();
+    socketRef.current.onclose = () => {
+      console.log('WebSocket connection closed');
+      if (socketRef.current.readyState === WebSocket.CLOSED) {
+        setTimeout(connectWebSocket, 1000); // Reconnect after 1 second
+      } // Reconnect after 1 second
     };
     return () => {
       // Clean up the WebSocket connection when the component is unmounted
@@ -282,6 +294,14 @@ const Tower = () => {
           }}
         >
           <div className="mx-[20px]">Play</div>
+        </button>
+        <button
+          className={`rounded-full bg-gray-300 hover:bg-gray-500 ml-3`}
+          onClick={() => {
+            stop();
+          }}
+        >
+          <div className="mx-[20px]">Stop</div>
         </button>
       </div>
       <div className="inline-flex w-full mb-5">

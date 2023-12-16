@@ -161,60 +161,72 @@ const Mines = () => {
       })
     );
   };
+  const stop = () => {
+    socketRef.current.close();
+  };
   useEffect(() => {
-    socketRef.current = new WebSocket('wss://bch.games/api/graphql', 'graphql-transport-ws');
-    socketRef.current.onopen = () => {
-      // Once the WebSocket connection is open, you can send your GraphQL request
-      socketRef.current.send(JSON.stringify({ type: 'connection_init' }));
-    };
-    socketRef.current.onmessage = (event) => {
-      // Handle incoming messages from the WebSocket server
-      const response = JSON.parse(event.data);
-      if (response.id === '0d7d8090-9791-11ee-b9d1-0242ac120002' && response.payload) {
-        username = response.payload.data.authenticate.username;
-        getbalence();
-      } else if (response.id === '3f2c35f1-dad2-4651-aac8-89f2fe69cc45' && response.payload) {
-        if (response.payload.errors && response.payload.errors[0].message === 'INSUFFICIENT_FUNDS_ERROR')
-          toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
-        else if (response.payload.data.playMines) {
-          playId = response.payload.data.playMines._id;
-          const random = getRandomArray();
-          randomPlay = random;
-          autoPlay({ random: random, playId: response.payload.data.playMines._id });
-        }
-      } else if (response.id === '08ed3549-b044-438f-99c6-acd355d070f1') {
-        if (response.payload) {
-          if (response.payload.data.minesUncoverTiles) {
-            if (response.payload.data.minesUncoverTiles.details.mines === null) {
-              miningCounter++;
-              autoPlay({ random: randomPlay, playId: playId });
-            } else if (response.payload.data.minesUncoverTiles.details.mines !== null) {
-              setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
+    const connectWebSocket = () => {
+      socketRef.current = new WebSocket('wss://bch.games/api/graphql', 'graphql-transport-ws');
+      socketRef.current.onopen = () => {
+        // Once the WebSocket connection is open, you can send your GraphQL request
+        socketRef.current.send(JSON.stringify({ type: 'connection_init' }));
+      };
+      socketRef.current.onmessage = (event) => {
+        // Handle incoming messages from the WebSocket server
+        const response = JSON.parse(event.data);
+        if (response.id === '0d7d8090-9791-11ee-b9d1-0242ac120002' && response.payload) {
+          username = response.payload.data.authenticate.username;
+          getbalence();
+        } else if (response.id === '3f2c35f1-dad2-4651-aac8-89f2fe69cc45' && response.payload) {
+          if (response.payload.errors && response.payload.errors[0].message === 'INSUFFICIENT_FUNDS_ERROR')
+            toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
+          else if (response.payload.data.playMines) {
+            playId = response.payload.data.playMines._id;
+            const random = getRandomArray();
+            randomPlay = random;
+            autoPlay({ random: random, playId: response.payload.data.playMines._id });
+          }
+        } else if (response.id === '08ed3549-b044-438f-99c6-acd355d070f1') {
+          if (response.payload) {
+            if (response.payload.data.minesUncoverTiles) {
+              if (response.payload.data.minesUncoverTiles.details.mines === null) {
+                miningCounter++;
+                autoPlay({ random: randomPlay, playId: playId });
+              } else if (response.payload.data.minesUncoverTiles.details.mines !== null) {
+                setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
+                if (counter < playNumberRef.current) {
+                  miniPlay();
+                  counter++;
+                }
+              }
+            } else if (response.payload.data.minesCashout) {
+              setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesCashout }]);
               if (counter < playNumberRef.current) {
                 miniPlay();
                 counter++;
               }
             }
-          } else if (response.payload.data.minesCashout) {
-            setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesCashout }]);
-            if (counter < playNumberRef.current) {
-              miniPlay();
-              counter++;
-            }
           }
+          // if (response.payload) {
+          //   if (response.payload.data.minesUncoverTiles.multiplier) {
+          //     console.log('response.payload.data.minesUncoverTiles------->', response);
+          //     setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
+          //   }
+          // }
+        } else if (response.id == 'f454cbb6-d074-470d-9aa4-835dc10904a4') {
+          if (response.payload.data.balance) {
+            setBalance(response.payload.data.balance.after);
+          }
+        } else {
         }
-        // if (response.payload) {
-        //   if (response.payload.data.minesUncoverTiles.multiplier) {
-        //     console.log('response.payload.data.minesUncoverTiles------->', response);
-        //     setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.minesUncoverTiles }]);
-        //   }
-        // }
-      } else if (response.id == 'f454cbb6-d074-470d-9aa4-835dc10904a4') {
-        if (response.payload.data.balance) {
-          setBalance(response.payload.data.balance.after);
-        }
-      } else {
-      }
+      };
+    };
+    connectWebSocket();
+    socketRef.current.onclose = () => {
+      console.log('WebSocket connection closed');
+      if (socketRef.current.readyState === WebSocket.CLOSED) {
+        setTimeout(connectWebSocket, 1000); // Reconnect after 1 second
+      } // Reconnect after 1 second
     };
     return () => {
       // Clean up the WebsocketRef.current connection when the component is unmounted
@@ -280,6 +292,14 @@ const Mines = () => {
           }}
         >
           <div className="mx-[20px]">Play</div>
+        </button>
+        <button
+          className={`rounded-full bg-gray-300 hover:bg-gray-500 ml-3`}
+          onClick={() => {
+            stop();
+          }}
+        >
+          <div className="mx-[20px]">Stop</div>
         </button>
       </div>
       <div className="inline-flex w-full mb-5">

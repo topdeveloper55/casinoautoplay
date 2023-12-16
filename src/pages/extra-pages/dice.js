@@ -21,7 +21,7 @@ const Dice = () => {
   const { user } = useAuth();
   const [balance, setBalance] = useState(0);
   const balanceRef = useRef(0);
-  const userToken = user.authToken;
+  const userTokenRef = useRef('');
   useEffect(() => {
     playNumberRef.current = playNumber;
     userIdRef.current = user.userId;
@@ -29,6 +29,7 @@ const Dice = () => {
     dividingRef.current = dividing;
     upDownRef.current = upDown;
     balanceRef.current = balance;
+    userTokenRef.current = user.authToken;
   }, [playNumber, amount, dividing, upDown, balance]);
 
   let username = '';
@@ -53,51 +54,53 @@ const Dice = () => {
       setButtonColor2('bg-sky-600');
     }
   }
+
+  const betStart = async () => {
+    setTimeout(() => {
+      socketRef.current.send(
+        JSON.stringify({
+          id: '0d7d8090-9791-11ee-b9d1-0242ac120002',
+          payload: {
+            query:
+              '{\n  authenticate(\n    authToken: \n"' +
+              userTokenRef.current +
+              '"\n  ) {\n    _id\n    username\n    authToken\n    email\n    twoFactorEnabled\n    role\n    countryBlock\n    __typename\n  }\n}',
+            variables: {}
+          },
+          type: 'subscribe'
+        })
+      );
+    }, 1000);
+
+    setTimeout(() => {
+      socketRef.current.send(
+        JSON.stringify({
+          id: 'b37aeb93-b24a-41c4-8ac6-c8a496d99f88',
+          payload: {
+            query:
+              'mutation ($amount: Float!, $clientSeed: String!, $dividingPoint: Float!, $mode: DiceGameMode!) {\n  playDice(\n    amount: $amount\n    clientSeed: $clientSeed\n    dividingPoint: $dividingPoint\n    mode: $mode\n  ) {\n    id\n    isWin\n    profit\n    details {\n      ... on DiceGameDetails {\n        __typename\n        result\n        dividingPoint\n      }\n      ... on TargetGameDetails {\n        __typename\n      }\n      ... on MinesGameDetails {\n        __typename\n      }\n      ... on TowerGameDetails {\n        __typename\n      }\n      ... on HiloGameDetails {\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}',
+            variables: {
+              dividingPoint: parseInt(dividingRef.current),
+              mode: upDownRef.current,
+              amount: parseInt(amountRef.current),
+              clientSeed: userIdRef.current
+            }
+          },
+          type: 'subscribe'
+        })
+      );
+    }, 2000);
+  };
   const handlePlay = async () => {
     if (amount === 0) {
       toast('Please input Amount', { hideProgressBar: false, autoClose: 2000, type: 'error' });
     } else if (dividing === 0) {
       toast('Please input Dividing', { hideProgressBar: false, autoClose: 2000, type: 'error' });
-    } else if (userToken === '') {
+    } else if (userTokenRef.current === '') {
       toast('Please input userToken', { hideProgressBar: false, autoClose: 2000, type: 'error' });
     } else {
       counter = 0;
-      if (socketRef.current) {
-        setTimeout(() => {
-          socketRef.current.send(
-            JSON.stringify({
-              id: '0d7d8090-9791-11ee-b9d1-0242ac120002',
-              payload: {
-                query:
-                  '{\n  authenticate(\n    authToken: \n"' +
-                  userToken +
-                  '"\n  ) {\n    _id\n    username\n    authToken\n    email\n    twoFactorEnabled\n    role\n    countryBlock\n    __typename\n  }\n}',
-                variables: {}
-              },
-              type: 'subscribe'
-            })
-          );
-        }, 1000);
-
-        setTimeout(() => {
-          socketRef.current.send(
-            JSON.stringify({
-              id: 'b37aeb93-b24a-41c4-8ac6-c8a496d99f88',
-              payload: {
-                query:
-                  'mutation ($amount: Float!, $clientSeed: String!, $dividingPoint: Float!, $mode: DiceGameMode!) {\n  playDice(\n    amount: $amount\n    clientSeed: $clientSeed\n    dividingPoint: $dividingPoint\n    mode: $mode\n  ) {\n    id\n    isWin\n    profit\n    details {\n      ... on DiceGameDetails {\n        __typename\n        result\n        dividingPoint\n      }\n      ... on TargetGameDetails {\n        __typename\n      }\n      ... on MinesGameDetails {\n        __typename\n      }\n      ... on TowerGameDetails {\n        __typename\n      }\n      ... on HiloGameDetails {\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}',
-                variables: {
-                  dividingPoint: parseInt(dividingRef.current),
-                  mode: upDownRef.current,
-                  amount: parseInt(amountRef.current),
-                  clientSeed: userIdRef.current
-                }
-              },
-              type: 'subscribe'
-            })
-          );
-        }, 2000);
-      }
+      betStart();
     }
   };
 
@@ -134,40 +137,52 @@ const Dice = () => {
       );
     }, 500);
   };
-
+  const stop = () => {
+    socketRef.current.close();
+  };
   // let socket;
 
   useEffect(() => {
-    socketRef.current = new WebSocket('wss://bch.games/api/graphql', 'graphql-transport-ws');
+    const connectWebSocket = () => {
+      socketRef.current = new WebSocket('wss://bch.games/api/graphql', 'graphql-transport-ws');
 
-    socketRef.current.onopen = () => {
-      // Once the WebSocket connection is open, you can send your GraphQL request
-      socketRef.current.send(JSON.stringify({ type: 'connection_init' }));
-    };
+      socketRef.current.onopen = () => {
+        // Once the WebSocket connection is open, you can send your GraphQL request
+        socketRef.current.send(JSON.stringify({ type: 'connection_init' }));
+      };
 
-    socketRef.current.onmessage = (event) => {
-      // Handle incoming messages from the WebSocket server
-      const response = JSON.parse(event.data);
-      if (response.id === '0d7d8090-9791-11ee-b9d1-0242ac120002' && response.payload) {
-        username = response.payload.data.authenticate.username;
-        getbalence();
-      } else if (response.id === 'b37aeb93-b24a-41c4-8ac6-c8a496d99f88' && response.payload) {
-        if (response.payload.errors && response.payload.errors[0].message === 'INSUFFICIENT_FUNDS_ERROR')
-          toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
-        else if (response.payload.data.playDice) {
-          setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.playDice }]);
-          if (counter < playNumberRef.current) {
-            autoPlay();
-            counter++;
+      socketRef.current.onmessage = (event) => {
+        // Handle incoming messages from the WebSocket server
+        const response = JSON.parse(event.data);
+        if (response.id === '0d7d8090-9791-11ee-b9d1-0242ac120002' && response.payload) {
+          username = response.payload.data.authenticate.username;
+          getbalence();
+        } else if (response.id === 'b37aeb93-b24a-41c4-8ac6-c8a496d99f88' && response.payload) {
+          if (response.payload.errors && response.payload.errors[0].message === 'INSUFFICIENT_FUNDS_ERROR')
+            toast('Not enough BCH', { hideProgressBar: false, autoClose: 2000, type: 'error' });
+          else if (response.payload.data.playDice) {
+            setPlayData((prevPlayData) => [...prevPlayData, { username: username, data: response.payload.data.playDice }]);
+            if (counter < playNumberRef.current) {
+              autoPlay();
+              counter++;
+            }
           }
+        } else if (response.id == 'f454cbb6-d074-470d-9aa4-835dc10904a4') {
+          if (response.payload.data.balance) {
+            setBalance(response.payload.data.balance.after);
+          }
+        } else {
+          console.log('response =>', response.id);
         }
-      } else if (response.id == 'f454cbb6-d074-470d-9aa4-835dc10904a4') {
-        if (response.payload.data.balance) {
-          setBalance(response.payload.data.balance.after);
-        }
-      } else {
-        console.log('response =>', response.id);
-      }
+      };
+    };
+    connectWebSocket();
+
+    socketRef.current.onclose = () => {
+      console.log('WebSocket connection closed');
+      if (socketRef.current.readyState === WebSocket.CLOSED) {
+        setTimeout(connectWebSocket, 1000); // Reconnect after 1 second
+      } // Reconnect after 1 second
     };
     return () => {
       // Clean up the WebSocket connection when the component is unmounted
@@ -233,6 +248,14 @@ const Dice = () => {
           }}
         >
           <div className="mx-[20px]">Play</div>
+        </button>
+        <button
+          className={`rounded-full bg-gray-300 hover:bg-gray-500 ml-3`}
+          onClick={() => {
+            stop();
+          }}
+        >
+          <div className="mx-[20px]">Stop</div>
         </button>
       </div>
 
